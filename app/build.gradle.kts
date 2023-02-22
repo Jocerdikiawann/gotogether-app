@@ -18,6 +18,7 @@ android {
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -37,6 +38,11 @@ android {
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
         }
         debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             manifestPlaceholders["MAPS_API_KEYS"] = "$mapsApiKeys"
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
@@ -59,6 +65,7 @@ android {
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/gradle/incremental.annotation.processors"
         }
     }
 }
@@ -72,7 +79,11 @@ dependencies {
     implementation(Libs.SquareUp.okhttp)
     implementation(Libs.SquareUp.logging)
     implementation(Libs.Google.gsonConverter)
-
+    implementation(Libs.Maps.utils)
+    implementation(Libs.AndroidX.multidex)
+    implementation(Libs.Google.systemUi)
+    implementation(Libs.Google.hiltNavigationCompose)
+    implementation(Libs.Google.location)
     implementation(Libs.AndroidX.Room.roomRuntime)
     implementation(Libs.AndroidX.Room.roomKtx)
     annotationProcessor(Libs.AndroidX.Room.roomCompiler)

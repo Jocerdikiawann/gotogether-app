@@ -37,7 +37,7 @@ class AppData {
                 .build()
 
             val retrofit = Retrofit.Builder()
-                .baseUrl("https://${baseUrl}?key=${apiKey}")
+                .baseUrl("https://${baseUrl}/?key=${apiKey}")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build()

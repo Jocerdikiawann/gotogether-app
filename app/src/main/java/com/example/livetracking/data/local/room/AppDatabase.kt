@@ -2,11 +2,12 @@ package com.example.livetracking.data.local.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.livetracking.domain.entity.PlaceEntity
 
 
 @Database(
     entities = [
-        PlaceDao::class
+        PlaceEntity::class
     ],
     version = 1,
     exportSchema = false

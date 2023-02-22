@@ -9,7 +9,7 @@ import com.example.livetracking.domain.entity.PlaceEntity
 
 @Dao
 interface PlaceDao {
-    @Query("SELECT * FROM tb_place")
+    @Query("SELECT * FROM tb_place WHERE id = :id")
     fun getById(id: Int): PlaceEntity
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

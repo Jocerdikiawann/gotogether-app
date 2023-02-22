@@ -22,7 +22,7 @@ import com.example.livetracking.utils.from
 
 
 @Composable
-fun ProfileBar(modifier: Modifier = Modifier) {
+fun ProfileBar(modifier: Modifier = Modifier,img:String="",name:String="Jon Doe") {
     val ctx = LocalContext.current
     Row(modifier = modifier.padding(12.dp.from(ctx))) {
         Column {
@@ -33,7 +33,7 @@ fun ProfileBar(modifier: Modifier = Modifier) {
                     .clip(CircleShape)
             ) {
                 Image(
-                    painter = rememberImagePainter(data = "", builder = {
+                    painter = rememberImagePainter(data = img, builder = {
                         crossfade(true)
                         error(R.drawable.user)
                         placeholder(R.drawable.user)
@@ -49,7 +49,7 @@ fun ProfileBar(modifier: Modifier = Modifier) {
             }
             Spacer(modifier = modifier.height(10.dp.from(ctx)))
             Text(
-                text = "Hi, Jon Doe", style = MaterialTheme.typography.labelSmall.copy(
+                text = "Hi, $name", style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp.from(ctx),
                     color = Color.Gray

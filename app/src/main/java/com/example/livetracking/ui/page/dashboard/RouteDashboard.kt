@@ -10,8 +10,8 @@ object Dashboard {
 
 fun NavGraphBuilder.routeDashboard(
     nav: NavHostController
-){
-    composable(Dashboard.routeName){
-        PageDashboard()
+) {
+    composable(Dashboard.routeName) {
+        PageDashboard(nav = nav)
     }
 }

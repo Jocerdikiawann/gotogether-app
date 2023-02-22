@@ -8,6 +8,7 @@ object Libs {
         val androidxCore by lazy { "androidx.core:core-ktx:1.7.0" }
         val androidXLifeCycleRuntime by lazy { "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1" }
         val navigation by lazy { "androidx.navigation:navigation-compose:2.5.3" }
+        val multidex by lazy {"androidx.multidex:multidex:2.0.1"}
 
         object Compose {
             val ui by lazy { "androidx.compose.ui:ui:$composeVersion" }
@@ -43,7 +44,10 @@ object Libs {
         val gson by lazy {"com.google.code.gson:gson:2.10.1"}
         val gsonConverter by lazy {"com.squareup.retrofit2:converter-gson:2.9.0"}
         val dagger by lazy {"com.google.dagger:hilt-android:2.44"}
+        val hiltNavigationCompose by lazy {"androidx.hilt:hilt-navigation-compose:1.0.0"}
         val daggerCompiler by lazy {"com.google.dagger:hilt-android-compiler:2.44"}
+        val systemUi by lazy {"com.google.accompanist:accompanist-systemuicontroller:0.29.1-alpha"}
+        val location by lazy { "com.google.android.gms:play-services-location:21.0.1" }
     }
 
     object Coil {
@@ -57,6 +61,7 @@ object Libs {
     object Maps {
         val openStreetMaps by lazy { "org.osmdroid:osmdroid-android:6.1.14" }
         val mapsCompose by lazy { "com.google.maps.android:maps-compose:2.10.0" }
+        val utils by lazy {"com.google.maps.android:android-maps-utils:3.4.0"}
         val playServiceMaps by lazy { "com.google.android.gms:play-services-maps:18.1.0" }
         val bonusPackOsm by lazy { "com.github.MKergall:osmbonuspack:6.9.0" }
     }
