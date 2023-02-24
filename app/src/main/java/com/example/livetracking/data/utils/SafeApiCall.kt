@@ -13,18 +13,21 @@ suspend fun <T> safeApiCall(a: Boolean = false, call: suspend () -> Response<T>)
 
     try {
         val response = call.invoke()
-        if(response.code() in 200 .. 209){
+        if (response.code() in 200..209) {
             return DataState.onData((response.body()) as T)
-
-        } else if (response.code() in 400..500) {
+        }
+        if (response.code() in 400..500) {
             val gson = Gson()
             val json = response.errorBody()?.string()
+            val contentType = response.raw().body?.contentType()
+            if (contentType != null && contentType.subtype == "html") {
+                return DataState.onFailure("Internal server error")
+            }
             if (json.isNullOrBlank()) {
                 return DataState.onFailure("Failed to authenticate")
             }
             val error = gson.fromJson(json, ErrorBody::class.java)
-            return DataState.onFailure(error.message.toString())
-
+            return DataState.onFailure(error.error_message.toString())
         }
         return DataState.onFailure(response.message())
     } catch (e: Exception) {
@@ -53,5 +56,5 @@ suspend fun <T> safeApiCall(a: Boolean = false, call: suspend () -> Response<T>)
 
 @Keep
 data class ErrorBody(
-    var message: String? = ""
+    var error_message: String? = ""
 )

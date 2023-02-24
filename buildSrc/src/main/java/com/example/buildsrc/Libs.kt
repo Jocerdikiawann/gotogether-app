@@ -47,6 +47,7 @@ object Libs {
         val hiltNavigationCompose by lazy {"androidx.hilt:hilt-navigation-compose:1.0.0"}
         val daggerCompiler by lazy {"com.google.dagger:hilt-android-compiler:2.44"}
         val systemUi by lazy {"com.google.accompanist:accompanist-systemuicontroller:0.29.1-alpha"}
+        val shimmer by lazy {"com.google.accompanist:accompanist-placeholder-material:0.29.1-alpha"}
         val location by lazy { "com.google.android.gms:play-services-location:21.0.1" }
     }
 

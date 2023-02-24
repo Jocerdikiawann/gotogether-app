@@ -82,6 +82,7 @@ dependencies {
     implementation(Libs.Maps.utils)
     implementation(Libs.AndroidX.multidex)
     implementation(Libs.Google.systemUi)
+    implementation(Libs.Google.shimmer)
     implementation(Libs.Google.hiltNavigationCompose)
     implementation(Libs.Google.location)
     implementation(Libs.AndroidX.Room.roomRuntime)

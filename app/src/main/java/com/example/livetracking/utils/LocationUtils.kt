@@ -13,15 +13,22 @@ import androidx.lifecycle.LiveData
 import com.example.livetracking.ui.page.dashboard.DashboardStateUI
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsStatusCodes
+import com.google.android.gms.location.Priority
 
 class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
 
     companion object {
-        private const val MINUTE: Long = 6000
+        //In millis
+        private const val DURATION_FOR_CHANGE_LOCATION: Long = 15000
         val locationRequest: LocationRequest =
-            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, MINUTE)
-                .setIntervalMillis(MINUTE)
+            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, DURATION_FOR_CHANGE_LOCATION)
+                .setIntervalMillis(DURATION_FOR_CHANGE_LOCATION)
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                 .build()
     }
@@ -104,6 +111,9 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
                 }
                 LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
 
+                }
+                LocationSettingsStatusCodes.SUCCESS->{
+                    Log.e("SUCCESS", "onGps")
                 }
             }
         }

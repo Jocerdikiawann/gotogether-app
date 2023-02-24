@@ -1,4 +1,4 @@
-package com.example.livetracking.domain.model
+package com.example.livetracking.domain.model.response
 
 data class GeocodedWaypointModel(
     val geocoder_status: String,

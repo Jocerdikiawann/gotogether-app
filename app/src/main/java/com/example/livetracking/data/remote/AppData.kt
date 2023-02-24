@@ -26,9 +26,10 @@ class AppData {
             val okHttpClient = OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor)
                 .addNetworkInterceptor { chain ->
                     val origin = chain.request()
-                    val request = origin.newBuilder()
-                        .method(origin.method, origin.body)
+                    val url = origin.url.newBuilder().addQueryParameter("key", apiKey)
                         .build()
+                    val request =
+                        origin.newBuilder().url(url).method(origin.method, origin.body).build()
                     chain.proceed(request)
                 }
                 .connectTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
@@ -37,7 +38,7 @@ class AppData {
                 .build()
 
             val retrofit = Retrofit.Builder()
-                .baseUrl("https://${baseUrl}/?key=${apiKey}")
+                .baseUrl("https://${baseUrl}/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build()

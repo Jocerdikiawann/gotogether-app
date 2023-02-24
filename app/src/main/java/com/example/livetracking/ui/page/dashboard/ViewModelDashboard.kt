@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.utils.LocationUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ViewModelDashboard @Inject constructor(
+    private val googleRepository: GoogleRepository,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -26,12 +28,20 @@ class ViewModelDashboard @Inject constructor(
     private var _havePermission = MutableLiveData<LocationStateUI>(LocationStateUI())
     val havePermission get() = _havePermission
 
+    private var _addressStateUI = MutableLiveData<AddressStateUI>(AddressStateUI())
+    val addressStateUI get() = _addressStateUI
+
     private val locationUtils = LocationUtils(context)
+
+    init {
+        startLocationUpdate()
+    }
+
     fun turnOnGps(activity: Activity) {
         locationUtils.turnOnGPS(activity)
     }
 
-    fun startLocationUpdate() {
+    private fun startLocationUpdate() {
         locationUtils.startLocationUpdate()
     }
 
@@ -49,4 +59,42 @@ class ViewModelDashboard @Inject constructor(
     }
 
     fun getLocation() = locationUtils
+
+    fun getAddress(lat: Double, lng: Double) = viewModelScope.launch {
+        googleRepository.geocodingLocation("$lat,$lng").collect {
+            _addressStateUI.postValue(
+                when (it) {
+                    is DataState.onData -> {
+                        val addressComponent =
+                            it.data.results.firstOrNull()?.address_components ?: listOf()
+                        var addressFirst = ""
+                        var addressSecond = ""
+                        for (component in addressComponent) {
+                            when {
+                                component.types.contains("administrative_area_level_2") -> {
+                                    addressFirst = component.long_name
+                                }
+                                component.types.contains("administrative_area_level_1") -> {
+                                    addressSecond = component.long_name
+                                }
+                            }
+                        }
+                        AddressStateUI(
+                            addressFirst = addressFirst,
+                            addressSecond = addressSecond
+                        )
+                    }
+                    is DataState.onFailure -> {
+                        AddressStateUI(
+                            error = true,
+                            errMsg = it.error_message
+                        )
+                    }
+                    DataState.onLoading -> AddressStateUI(
+                        loading = true
+                    )
+                }
+            )
+        }
+    }
 }

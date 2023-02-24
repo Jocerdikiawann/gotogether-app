@@ -19,4 +19,8 @@ class GoogleDataSourceImpl(
             destination
         )
     }
+
+    override suspend fun geocodingLocation(latlng: String) = safeApiCall {
+        apiServices.geocodingLocation(latlng)
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.livetracking.domain.model
+package com.example.livetracking.domain.model.response
 
 data class StepModel(
     val distance: DistanceModel,
