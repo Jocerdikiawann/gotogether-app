@@ -28,7 +28,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="${LABEL}"
         android:supportsRtl="true"
         android:theme="@style/Theme.LiveTracking"
         tools:targetApi="31">
@@ -38,7 +38,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.LiveTracking">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

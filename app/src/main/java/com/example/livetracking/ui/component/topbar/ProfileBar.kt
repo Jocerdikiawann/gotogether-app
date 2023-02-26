@@ -28,8 +28,8 @@ fun ProfileBar(modifier: Modifier = Modifier,img:String="",name:String="Jon Doe"
         Column {
             Box(
                 modifier = modifier
-                    .width(50.dp.from(ctx))
-                    .height(50.dp.from(ctx))
+                    .width(60.dp.from(ctx))
+                    .height(60.dp.from(ctx))
                     .clip(CircleShape)
             ) {
                 Image(
@@ -51,7 +51,7 @@ fun ProfileBar(modifier: Modifier = Modifier,img:String="",name:String="Jon Doe"
             Text(
                 text = "Hi, $name", style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.Light,
-                    fontSize = 12.sp.from(ctx),
+                    fontSize = 14.sp.from(ctx),
                     color = Color.Gray
                 )
             )

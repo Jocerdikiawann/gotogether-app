@@ -35,7 +35,7 @@ fun LiveTrackingTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorSchemecolors =
+    val colorScheme =
         if (!darkTheme) {
             LightColorScheme
         } else {
@@ -43,7 +43,7 @@ fun LiveTrackingTheme(
         }
 
     MaterialTheme(
-        colorScheme = colorSchemecolors,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

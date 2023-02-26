@@ -1,4 +1,4 @@
-package com.example.livetracking.ui.page.dashboard
+package com.example.livetracking.ui.page.dashboard.home
 
 import android.Manifest
 import android.app.Activity

@@ -10,7 +10,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
-import com.example.livetracking.ui.page.dashboard.DashboardStateUI
+import com.example.livetracking.ui.page.dashboard.home.DashboardStateUI
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback

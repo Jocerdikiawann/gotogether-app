@@ -9,7 +9,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.example.livetracking.ui.page.dashboard.Dashboard
+import com.example.livetracking.ui.page.dashboard.home.Dashboard
+import com.example.livetracking.ui.page.splash.Splash
 import com.example.livetracking.ui.theme.LiveTrackingTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
             }
 
             LiveTrackingTheme {
-                AppNavigation(nav = navHostController, start = Dashboard.routeName)
+                AppNavigation(nav = navHostController, start = Splash.routeName)
             }
         }
     }

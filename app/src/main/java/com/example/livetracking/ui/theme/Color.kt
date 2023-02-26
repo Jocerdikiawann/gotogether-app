@@ -11,5 +11,6 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val GrayBG= Color(0xFFE4E4E4)
-val BlueHyperlink = Color(0xFF8AAEDA)
-val BlueBg = Color(0xFF4B93FF)
+val Primary = Color(0xff7DB9B6)
+val Secondary = Color(0xff1F8A9E)
+val Tertiary = Color(0xffF5DEB3)

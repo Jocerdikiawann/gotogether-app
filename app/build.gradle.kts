@@ -7,6 +7,7 @@ plugins {
 
 val mapsApiKeys = findProperty("MAPS_API_KEYS")
 val baseUrlGoogle = findProperty("BASE_URL_GOOGLE")
+val labelApp = findProperty("LABEL_APP")
 
 android {
     namespace = "com.example.livetracking"
@@ -34,6 +35,7 @@ android {
                 "proguard-rules.pro"
             )
             manifestPlaceholders["MAPS_API_KEYS"] = "$mapsApiKeys"
+            manifestPlaceholders["LABEL"] = "$labelApp"
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
         }
@@ -44,6 +46,7 @@ android {
                 "proguard-rules.pro"
             )
             manifestPlaceholders["MAPS_API_KEYS"] = "$mapsApiKeys"
+            manifestPlaceholders["LABEL"] = "$labelApp"
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
         }
