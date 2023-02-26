@@ -31,10 +31,10 @@ fun NavGraphBuilder.routeMain(
                     PageDashboard()
                 }
                 Saved.routeName -> {
-                    PageSaved(nav = nav)
+                    PageSaved()
                 }
                 History.routeName -> {
-                    PageHistory(nav = nav)
+                    PageHistory()
                 }
             }
         }

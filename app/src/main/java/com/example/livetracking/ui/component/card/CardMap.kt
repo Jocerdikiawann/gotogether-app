@@ -9,6 +9,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.livetracking.ui.theme.GrayBG
 import com.example.livetracking.utils.from
@@ -30,11 +31,11 @@ fun CardMap(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp.from(ctx))
+            .height(300.dp.from(ctx))
             .padding(horizontal = 12.dp.from(ctx)),
         elevation = CardDefaults.cardElevation(),
         shape = RoundedCornerShape(10.dp.from(ctx)),
-        border = BorderStroke(0.8.dp, GrayBG)
+        border = BorderStroke(0.8.dp, Color.Gray)
     ) {
         Box(){
             GoogleMap(

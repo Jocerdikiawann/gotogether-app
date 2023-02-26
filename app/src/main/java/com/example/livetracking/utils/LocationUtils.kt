@@ -8,6 +8,8 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
 import com.example.livetracking.ui.page.dashboard.home.DashboardStateUI
@@ -87,11 +89,7 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
         )
     }
 
-    internal fun turnOnGPS(activity: Activity) {
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5)
-            .setWaitForAccurateLocation(false)
-            .build()
-
+    internal fun turnOnGPS(activity: Activity,resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         val locationSetting = LocationSettingsRequest.Builder()
             .setAlwaysShow(true)
             .addLocationRequest(locationRequest)
@@ -99,12 +97,16 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
 
         val client = LocationServices.getSettingsClient(context.applicationContext)
             .checkLocationSettings(locationSetting)
+        client.addOnSuccessListener {
+            Log.e("SUCCESS1", "onGps is successes")
+        }
         client.addOnFailureListener { exception ->
             when ((exception as ApiException).statusCode) {
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                     try {
                         val resolvable = exception as ResolvableApiException
-                        resolvable.startResolutionForResult(activity, 0x1)
+                        resultLauncher.launch(IntentSenderRequest.Builder(resolvable.resolution).build())
+//                        resolvable.startResolutionForResult(activity, 0x1)
                     } catch (e: IntentSender.SendIntentException) {
                         Log.e("ERROR", e.message.toString())
                     }
@@ -112,8 +114,8 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
                 LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
 
                 }
-                LocationSettingsStatusCodes.SUCCESS->{
-                    Log.e("SUCCESS", "onGps")
+                LocationSettingsStatusCodes.SUCCESS -> {
+                    Log.e("SUCCESS2", "onGps is successes")
                 }
             }
         }

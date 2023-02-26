@@ -5,6 +5,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,14 +36,15 @@ class ViewModelDashboard @Inject constructor(
     private val locationUtils = LocationUtils(context)
 
     init {
+        havePermission()
         startLocationUpdate()
     }
 
-    fun turnOnGps(activity: Activity) {
-        locationUtils.turnOnGPS(activity)
+    fun turnOnGps(activity: Activity, resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        locationUtils.turnOnGPS(activity, resultLauncher)
     }
 
-    private fun startLocationUpdate() {
+    internal fun startLocationUpdate() {
         locationUtils.startLocationUpdate()
     }
 

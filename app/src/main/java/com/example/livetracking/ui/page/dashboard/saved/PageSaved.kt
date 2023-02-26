@@ -9,8 +9,6 @@ object Saved {
 }
 
 @Composable
-fun PageSaved(
-    nav:NavHostController,
-){
+fun PageSaved(){
     Text(text = "Hello from saved")
 }

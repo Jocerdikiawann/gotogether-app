@@ -9,8 +9,6 @@ object History {
 }
 
 @Composable
-fun PageHistory(
-    nav:NavHostController
-){
+fun PageHistory(){
     Text(text = "Hello from history")
 }
