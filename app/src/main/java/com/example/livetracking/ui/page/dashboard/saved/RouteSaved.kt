@@ -1,7 +1,6 @@
 package com.example.livetracking.ui.page.dashboard.saved
 
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.livetracking.ui.page.dashboard.main.DashboardMain
 
@@ -10,18 +9,15 @@ object Saved {
 }
 
 fun NavGraphBuilder.routeSaved(
-    router: NavHostController,
+    onNavigateToItemDashboard: (String) -> Unit,
 ) {
     composable(Saved.routeName) {
         DashboardMain(
-            currentRoute = it.destination.route ?: Saved.routeName,
+            currentRoute = it.destination.route ?: "",
             onItemClick = { route ->
-                router.navigate(route) {
-                    launchSingleTop = true
-                }
+                onNavigateToItemDashboard(route)
             }) {
             PageSaved()
         }
-
     }
 }

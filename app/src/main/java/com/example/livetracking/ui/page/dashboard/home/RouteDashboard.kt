@@ -1,27 +1,131 @@
 package com.example.livetracking.ui.page.dashboard.home
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.livetracking.ui.page.dashboard.main.DashboardMain
+import com.example.livetracking.utils.PermissionUtils
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 
 object Dashboard {
     const val routeName: String = "dashboard"
 }
 
 fun NavGraphBuilder.routeDashboard(
-    router: NavHostController
+    onNavigateToItemDashboard: (String) -> Unit,
 ) {
     composable(Dashboard.routeName) {
-        DashboardMain(
-            currentRoute = it.destination.route ?: Dashboard.routeName,
-            onItemClick = { route ->
-                router.navigate(route) {
-                    launchSingleTop = true
-                }
-            }) {
-            PageDashboard()
+        val ctx = LocalContext.current
+        val viewModel = hiltViewModel<ViewModelDashboard>()
+        val scope = rememberCoroutineScope()
+
+        val havePermission by viewModel.havePermission.observeAsState(LocationStateUI())
+        val dashboardStateUI by viewModel.getLocation().observeAsState(DashboardStateUI())
+        val addressStateUI by viewModel.addressStateUI.observeAsState(AddressStateUI())
+        var mapsReady by remember { mutableStateOf(false) }
+
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(
+                LatLng(
+                    dashboardStateUI.lat,
+                    dashboardStateUI.lng
+                ), 15f
+            )
         }
 
+        val mapsUiSettings by remember {
+            mutableStateOf(
+                MapUiSettings(
+                    compassEnabled = false,
+                    zoomControlsEnabled = false,
+                    myLocationButtonEnabled = true
+                )
+            )
+        }
+
+        val resultLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartIntentSenderForResult(),
+            onResult = { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    viewModel.startLocationUpdate()
+                }
+            })
+
+        val permissionUtils = PermissionUtils(ctx)
+        val permissionLauncher =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {
+                viewModel.havePermission()
+            }
+
+        fun updateUiAndLocation() {
+            scope.launch {
+                cameraPositionState.animate(
+                    update = CameraUpdateFactory.newCameraPosition(
+                        CameraPosition(
+                            LatLng(
+                                dashboardStateUI.lat,
+                                dashboardStateUI.lng
+                            ), 15f, 0f, 0f
+                        ),
+                    ),
+                    durationMs = 1000
+                )
+//            withTimeoutOrNull(15000) {
+//                viewModel.getAddress(dashboardStateUI.lat, dashboardStateUI.lng)
+//            }
+            }
+        }
+
+        DisposableEffect(key1 = havePermission, effect = {
+            if (!havePermission.isGpsOn && havePermission.permission == true) {
+                viewModel.turnOnGps(ctx as Activity, resultLauncher)
+            }
+            onDispose { }
+        })
+
+        DisposableEffect(dashboardStateUI) {
+            if (mapsReady) {
+                updateUiAndLocation()
+            }
+            onDispose { }
+        }
+
+        DashboardMain(
+            currentRoute = it.destination.route ?: "",
+            onItemClick = { route ->
+                onNavigateToItemDashboard(route)
+            }) {
+            PageDashboard(
+                onGivePermission = {
+                    permissionLauncher.launch(permissionUtils.listPermission())
+                },
+                havePermission = havePermission,
+                dashboardStateUI = dashboardStateUI,
+                mapsUiSettings = mapsUiSettings,
+                addressStateUI = addressStateUI,
+                cameraPositionState = cameraPositionState,
+                ctx = ctx,
+                onMapReady = {
+                    mapsReady = it
+                },
+                updateUiAndLocation = { updateUiAndLocation() },
+            )
+        }
     }
 }

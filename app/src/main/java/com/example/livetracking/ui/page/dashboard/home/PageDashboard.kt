@@ -1,8 +1,6 @@
 package com.example.livetracking.ui.page.dashboard.home
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,24 +17,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.livetracking.ui.component.card.CardIconMarker
 import com.example.livetracking.ui.component.card.CardMap
 import com.example.livetracking.ui.component.card.CardNotPermission
@@ -44,19 +33,16 @@ import com.example.livetracking.ui.component.card.CardRowSavedLocation
 import com.example.livetracking.ui.component.textfield.TextFieldSearch
 import com.example.livetracking.ui.theme.LiveTrackingTheme
 import com.example.livetracking.ui.theme.Secondary
-import com.example.livetracking.utils.PermissionUtils
 import com.example.livetracking.utils.from
 import com.example.livetracking.utils.toTitleCase
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.placeholder
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.launch
 import java.util.*
 
 
@@ -82,83 +68,16 @@ data class LocationStateUI(
 @Composable
 fun PageDashboard(
     modifier: Modifier = Modifier,
+    havePermission: LocationStateUI,
+    dashboardStateUI: DashboardStateUI,
+    cameraPositionState: CameraPositionState,
+    onMapReady: (Boolean) -> Unit,
+    mapsUiSettings: MapUiSettings,
+    updateUiAndLocation: () -> Unit,
+    addressStateUI: AddressStateUI,
+    onGivePermission: () -> Unit,
+    ctx: Context,
 ) {
-    val ctx = LocalContext.current
-    val viewModel = hiltViewModel<ViewModelDashboard>()
-    val scope = rememberCoroutineScope()
-
-    val havePermission by viewModel.havePermission.observeAsState(LocationStateUI())
-    val dashboardStateUI by viewModel.getLocation().observeAsState(DashboardStateUI())
-    val addressStateUI by viewModel.addressStateUI.observeAsState(AddressStateUI())
-    var mapsReady by remember { mutableStateOf(false) }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            LatLng(
-                dashboardStateUI.lat,
-                dashboardStateUI.lng
-            ), 15f
-        )
-    }
-
-    val mapsUiSettings by remember {
-        mutableStateOf(
-            MapUiSettings(
-                compassEnabled = false,
-                zoomControlsEnabled = false,
-                myLocationButtonEnabled = true
-            )
-        )
-    }
-
-    val resultLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult(),
-        onResult = { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.startLocationUpdate()
-            }
-        })
-
-    val permissionUtils = PermissionUtils(ctx)
-    val permissionLauncher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions()) {
-            viewModel.havePermission()
-        }
-
-    fun updateUiAndLocation() {
-        scope.launch {
-            cameraPositionState.animate(
-                update = CameraUpdateFactory.newCameraPosition(
-                    CameraPosition(
-                        LatLng(
-                            dashboardStateUI.lat,
-                            dashboardStateUI.lng
-                        ), 15f, 0f, 0f
-                    ),
-                ),
-                durationMs = 1000
-            )
-//            withTimeoutOrNull(15000) {
-//                viewModel.getAddress(dashboardStateUI.lat, dashboardStateUI.lng)
-//            }
-        }
-    }
-
-    DisposableEffect(key1 = havePermission, effect = {
-        if (!havePermission.isGpsOn && havePermission.permission == true) {
-            viewModel.turnOnGps(ctx as Activity, resultLauncher)
-        }
-        onDispose { }
-    })
-
-    DisposableEffect(dashboardStateUI) {
-        if (mapsReady) {
-            updateUiAndLocation()
-        }
-        onDispose { }
-    }
-
-
     when (havePermission.permission) {
         null -> Unit
         true -> {
@@ -211,7 +130,7 @@ fun PageDashboard(
                         cameraPositionState = cameraPositionState,
                         mapsUiSettings = mapsUiSettings,
                         onMapLoaded = {
-                            mapsReady = true
+                            onMapReady(true)
                             updateUiAndLocation()
                         },
                         onMyLocationButtonClick = {
@@ -318,7 +237,7 @@ fun PageDashboard(
         }
         false -> {
             CardNotPermission(ctx = ctx) {
-                permissionLauncher.launch(permissionUtils.listPermission())
+                onGivePermission()
             }
         }
     }
@@ -329,6 +248,5 @@ fun PageDashboard(
 @Preview(showSystemUi = true)
 fun DisplayDashboard() {
     LiveTrackingTheme {
-        PageDashboard()
     }
 }

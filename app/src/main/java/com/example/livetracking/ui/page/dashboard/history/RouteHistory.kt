@@ -11,15 +11,13 @@ object History {
 
 
 fun NavGraphBuilder.routeHistory(
-    router: NavHostController
+    onNavigateToItemDashboard:(String)->Unit,
 ) {
     composable(History.routeName) {
         DashboardMain(
-            currentRoute = it.destination.route ?: History.routeName,
+            currentRoute = it.destination.route ?: "",
             onItemClick = { route ->
-                router.navigate(route) {
-                    launchSingleTop = true
-                }
+                onNavigateToItemDashboard(route)
             }) {
             PageHistory()
         }
