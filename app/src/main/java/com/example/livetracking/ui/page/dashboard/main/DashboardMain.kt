@@ -22,9 +22,9 @@ import com.example.livetracking.ui.page.dashboard.home.Dashboard
 @Composable
 fun DashboardMain(
     onItemClick: (String) -> Unit = {},
+    currentRoute: String,
     content: @Composable () -> Unit,
 ) {
-    var currentRoute by remember { mutableStateOf(Dashboard.routeName) }
     val ctx = LocalContext.current
     Scaffold(
         containerColor = Color.White,
@@ -40,8 +40,7 @@ fun DashboardMain(
                 currentRoute = currentRoute,
                 ctx = ctx,
                 onItemClick = { route ->
-                    currentRoute = route
-                    onItemClick(currentRoute)
+                    onItemClick(route)
                 }
             )
         },

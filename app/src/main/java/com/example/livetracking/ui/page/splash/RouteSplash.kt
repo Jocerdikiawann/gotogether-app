@@ -4,14 +4,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.example.livetracking.ui.page.dashboard.main.Main
+import com.example.livetracking.ui.page.dashboard.home.Dashboard
 import com.example.livetracking.ui.page.splash.Splash.navigateToHome
 
 object Splash {
     const val routeName = "splash"
 
     fun NavHostController.navigateToHome() {
-        navigate(Main.routeName) {
+        navigate(Dashboard.routeName) {
             popUpTo(routeName) {
                 inclusive = true
             }
