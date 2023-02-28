@@ -6,12 +6,13 @@ import androidx.navigation.navigation
 import com.example.livetracking.ui.page.dashboard.history.routeHistory
 import com.example.livetracking.ui.page.dashboard.home.Dashboard
 import com.example.livetracking.ui.page.dashboard.home.routeDashboard
-import com.example.livetracking.ui.page.dashboard.main.Main.navigateToItemDashboard
+import com.example.livetracking.ui.page.dashboard.main.Main.navigateTo
 import com.example.livetracking.ui.page.dashboard.saved.routeSaved
+import com.example.livetracking.ui.page.search.Search
 
 object Main {
     const val routeName = "main"
-    fun NavHostController.navigateToItemDashboard(route: String) {
+    fun NavHostController.navigateTo(route: String) {
         this.navigate(route) {
             launchSingleTop = true
         }
@@ -23,13 +24,15 @@ fun NavGraphBuilder.dashboardGraph(
 ) {
     navigation(startDestination = Dashboard.routeName, route = Main.routeName) {
         routeHistory(onNavigateToItemDashboard = {
-            navHostController.navigateToItemDashboard(it)
+            navHostController.navigateTo(it)
         })
         routeDashboard(onNavigateToItemDashboard = {
-            navHostController.navigateToItemDashboard(it)
+            navHostController.navigateTo(it)
+        }, onNavigateToSearchLocation = {
+            navHostController.navigateTo(Search.routeName)
         })
         routeSaved(onNavigateToItemDashboard = {
-            navHostController.navigateToItemDashboard(it)
+            navHostController.navigateTo(it)
         })
     }
 }

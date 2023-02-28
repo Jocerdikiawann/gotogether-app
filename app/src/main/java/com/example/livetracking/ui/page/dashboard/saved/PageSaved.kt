@@ -1,5 +1,6 @@
 package com.example.livetracking.ui.page.dashboard.saved
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.livetracking.ui.component.card.CardColumnSavedLocation
@@ -15,7 +17,11 @@ import com.example.livetracking.utils.from
 
 
 @Composable
-fun PageSaved(modifier: Modifier = Modifier) {
+fun PageSaved(
+    modifier: Modifier = Modifier,
+    focusRequester: FocusRequester,
+    interactionSource: MutableInteractionSource,
+) {
     val ctx = LocalContext.current
     LazyColumn(modifier = modifier
         .fillMaxSize(), content = {
@@ -27,7 +33,9 @@ fun PageSaved(modifier: Modifier = Modifier) {
                 readOnly = false,
                 placeHolder = "Search here...",
                 value = "",
-                context = ctx
+                context = ctx,
+                focusRequester = focusRequester,
+                interactionSource = interactionSource
             )
             Spacer(modifier = modifier.height(5.dp.from(ctx)))
         }

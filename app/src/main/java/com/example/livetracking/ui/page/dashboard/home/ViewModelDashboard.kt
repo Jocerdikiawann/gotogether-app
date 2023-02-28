@@ -40,8 +40,8 @@ class ViewModelDashboard @Inject constructor(
         startLocationUpdate()
     }
 
-    fun turnOnGps(activity: Activity, resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
-        locationUtils.turnOnGPS(activity, resultLauncher)
+    fun turnOnGps(resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+        locationUtils.turnOnGPS(resultLauncher)
     }
 
     internal fun startLocationUpdate() {

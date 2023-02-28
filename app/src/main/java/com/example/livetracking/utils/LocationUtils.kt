@@ -1,7 +1,6 @@
 package com.example.livetracking.utils
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -89,7 +88,7 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
         )
     }
 
-    internal fun turnOnGPS(activity: Activity,resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
+    internal fun turnOnGPS(resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         val locationSetting = LocationSettingsRequest.Builder()
             .setAlwaysShow(true)
             .addLocationRequest(locationRequest)
@@ -105,8 +104,9 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                     try {
                         val resolvable = exception as ResolvableApiException
-                        resultLauncher.launch(IntentSenderRequest.Builder(resolvable.resolution).build())
-//                        resolvable.startResolutionForResult(activity, 0x1)
+                        resultLauncher.launch(
+                            IntentSenderRequest.Builder(resolvable.resolution).build()
+                        )
                     } catch (e: IntentSender.SendIntentException) {
                         Log.e("ERROR", e.message.toString())
                     }

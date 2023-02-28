@@ -3,6 +3,7 @@ package com.example.livetracking.ui.page.dashboard.home
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -10,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -29,6 +31,7 @@ object Dashboard {
 
 fun NavGraphBuilder.routeDashboard(
     onNavigateToItemDashboard: (String) -> Unit,
+    onNavigateToSearchLocation: () -> Unit,
 ) {
     composable(Dashboard.routeName) {
         val ctx = LocalContext.current
@@ -73,6 +76,9 @@ fun NavGraphBuilder.routeDashboard(
                 viewModel.havePermission()
             }
 
+        val interactionSource = MutableInteractionSource()
+        val focusRequester = remember { FocusRequester() }
+
         fun updateUiAndLocation() {
             scope.launch {
                 cameraPositionState.animate(
@@ -94,7 +100,7 @@ fun NavGraphBuilder.routeDashboard(
 
         DisposableEffect(key1 = havePermission, effect = {
             if (!havePermission.isGpsOn && havePermission.permission == true) {
-                viewModel.turnOnGps(ctx as Activity, resultLauncher)
+                viewModel.turnOnGps(resultLauncher)
             }
             onDispose { }
         })
@@ -125,6 +131,11 @@ fun NavGraphBuilder.routeDashboard(
                     mapsReady = it
                 },
                 updateUiAndLocation = { updateUiAndLocation() },
+                onClickSearchField = {
+                    onNavigateToSearchLocation()
+                },
+                focusRequester = focusRequester,
+                interactionSource = interactionSource,
             )
         }
     }

@@ -1,6 +1,8 @@
 package com.example.livetracking.ui.component.textfield
 
 import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,6 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +36,10 @@ fun TextFieldSearch(
     readOnly: Boolean,
     placeHolder: String,
     value: String,
-    context: Context
+    context: Context,
+    focusRequester: FocusRequester,
+    interactionSource: MutableInteractionSource,
+    onClickSearchField: () -> Unit = {},
 ) {
     OutlinedTextField(
         value = value,
@@ -59,7 +66,17 @@ fun TextFieldSearch(
         },
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp.from(context)),
+            .focusRequester(focusRequester)
+            .padding(horizontal = 12.dp.from(context))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = {
+                    if (!enable) {
+                        onClickSearchField()
+                    }
+                }
+            ),
         shape = RoundedCornerShape(20.dp.from(context)),
         readOnly = readOnly,
         enabled = enable,

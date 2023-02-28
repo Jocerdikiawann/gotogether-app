@@ -1,6 +1,7 @@
 package com.example.livetracking.ui.page.dashboard.home
 
 import android.content.Context
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +78,9 @@ fun PageDashboard(
     updateUiAndLocation: () -> Unit,
     addressStateUI: AddressStateUI,
     onGivePermission: () -> Unit,
+    onClickSearchField: () -> Unit,
+    focusRequester: FocusRequester,
+    interactionSource: MutableInteractionSource,
     ctx: Context,
 ) {
     when (havePermission.permission) {
@@ -91,7 +96,10 @@ fun PageDashboard(
                         readOnly = true,
                         placeHolder = "Find your destination...",
                         value = "",
-                        context = ctx
+                        context = ctx,
+                        onClickSearchField = { onClickSearchField() },
+                        focusRequester = focusRequester,
+                        interactionSource = interactionSource,
                     )
                 }
                 item {
