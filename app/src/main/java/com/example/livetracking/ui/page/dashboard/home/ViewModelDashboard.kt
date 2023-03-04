@@ -1,7 +1,6 @@
 package com.example.livetracking.ui.page.dashboard.home
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -9,9 +8,11 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
+import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.utils.LocationUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,11 +34,26 @@ class ViewModelDashboard @Inject constructor(
     private var _addressStateUI = MutableLiveData<AddressStateUI>(AddressStateUI())
     val addressStateUI get() = _addressStateUI
 
+    private var _dashboardStateUI = MutableLiveData<DashboardStateUI>(DashboardStateUI())
+    val dashboardStateUI get() = _dashboardStateUI
+
     private val locationUtils = LocationUtils(context)
 
+    private val locationObserver = Observer<LocationData> {
+        _dashboardStateUI.postValue(
+            DashboardStateUI(lat = it.lat, lng = it.lng)
+        )
+    }
+
     init {
+        locationUtils.observeForever(locationObserver)
         havePermission()
         startLocationUpdate()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        locationUtils.removeObserver(locationObserver)
     }
 
     fun turnOnGps(resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {
@@ -60,8 +76,6 @@ class ViewModelDashboard @Inject constructor(
             )
         )
     }
-
-    fun getLocation() = locationUtils
 
     fun getAddress(lat: Double, lng: Double) = viewModelScope.launch {
         googleRepository.geocodingLocation("$lat,$lng").collect {

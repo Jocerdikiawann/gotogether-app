@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.ui.page.dashboard.main.DashboardMain
 import com.example.livetracking.utils.PermissionUtils
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -31,7 +32,7 @@ object Dashboard {
 
 fun NavGraphBuilder.routeDashboard(
     onNavigateToItemDashboard: (String) -> Unit,
-    onNavigateToSearchLocation: () -> Unit,
+    onNavigateToSearchLocation: (LocationData) -> Unit,
 ) {
     composable(Dashboard.routeName) {
         val ctx = LocalContext.current
@@ -39,7 +40,7 @@ fun NavGraphBuilder.routeDashboard(
         val scope = rememberCoroutineScope()
 
         val havePermission by viewModel.havePermission.observeAsState(LocationStateUI())
-        val dashboardStateUI by viewModel.getLocation().observeAsState(DashboardStateUI())
+        val dashboardStateUI by viewModel.dashboardStateUI.observeAsState(DashboardStateUI())
         val addressStateUI by viewModel.addressStateUI.observeAsState(AddressStateUI())
         var mapsReady by remember { mutableStateOf(false) }
 
@@ -132,7 +133,9 @@ fun NavGraphBuilder.routeDashboard(
                 },
                 updateUiAndLocation = { updateUiAndLocation() },
                 onClickSearchField = {
-                    onNavigateToSearchLocation()
+                    onNavigateToSearchLocation(
+                        LocationData(dashboardStateUI.lat, dashboardStateUI.lng)
+                    )
                 },
                 focusRequester = focusRequester,
                 interactionSource = interactionSource,

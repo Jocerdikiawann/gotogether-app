@@ -11,7 +11,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LiveData
-import com.example.livetracking.ui.page.dashboard.home.DashboardStateUI
+import com.example.livetracking.domain.model.LocationData
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
@@ -22,7 +22,7 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.Priority
 
-class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
+class LocationUtils(var context: Context) : LiveData<LocationData>() {
 
     companion object {
         //In millis
@@ -123,7 +123,7 @@ class LocationUtils(var context: Context) : LiveData<DashboardStateUI>() {
 
     private fun setLocationData(location: Location?) {
         location?.let { location ->
-            value = DashboardStateUI(location.latitude, location.longitude)
+            value = LocationData(location.latitude, location.longitude, )
         }
     }
 }

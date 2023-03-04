@@ -1,6 +1,5 @@
 package com.example.livetracking.di
 
-import android.app.Activity
 import android.content.Context
 import com.example.livetracking.BuildConfig
 import com.example.livetracking.data.coroutines.DefaultDispatcherProvider
@@ -11,11 +10,10 @@ import com.example.livetracking.data.remote.AppData
 import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.repository.impl.GoogleRepositoryImpl
+import com.google.android.libraries.places.api.Places
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
@@ -41,8 +39,12 @@ object DataModule {
     @Provides
     internal fun provideGoogleRepository(
         dispatcherProvider: DispatcherProvider,
-        googleDataSource: GoogleDataSource
-    ): GoogleRepository = GoogleRepositoryImpl(
-        dispatcherProvider, googleDataSource
-    )
+        googleDataSource: GoogleDataSource,
+        @ApplicationContext context: Context,
+    ): GoogleRepository {
+        val client = Places.createClient(context)
+        return GoogleRepositoryImpl(
+            dispatcherProvider, googleDataSource,  client
+        )
+    }
 }

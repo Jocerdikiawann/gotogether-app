@@ -3,11 +3,21 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("kotlin-parcelize")
+
 }
 
 val mapsApiKeys = findProperty("MAPS_API_KEYS")
 val baseUrlGoogle = findProperty("BASE_URL_GOOGLE")
 val labelApp = findProperty("LABEL_APP")
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.appcompat:appcompat:1.3.1")
+        force("androidx.appcompat:appcompat-resources:1.3.1")
+    }
+}
 
 android {
     namespace = "com.example.livetracking"
@@ -107,8 +117,8 @@ dependencies {
     implementation(Libs.AndroidX.Compose.toolingpreview)
     implementation(Libs.AndroidX.Compose.materialTree)
     implementation(Libs.Maps.mapsCompose)
-//    implementation(Libs.Maps.openStreetMaps)
-//    implementation(Libs.Maps.bonusPackOsm)
+    implementation(Libs.Maps.place)
+    implementation(Libs.Maps.placeKtx)
     implementation(Libs.Maps.playServiceMaps)
     testImplementation(Libs.Junit.junit)
     androidTestImplementation(Libs.AndroidX.Test.junit)

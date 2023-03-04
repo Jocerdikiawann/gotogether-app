@@ -20,9 +20,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.livetracking.R
 import com.example.livetracking.ui.theme.Secondary
 import com.example.livetracking.utils.from
@@ -39,6 +37,7 @@ fun TextFieldSearch(
     context: Context,
     focusRequester: FocusRequester,
     interactionSource: MutableInteractionSource,
+    leadingIcon: @Composable (() -> Unit)? = null,
     onClickSearchField: () -> Unit = {},
 ) {
     OutlinedTextField(
@@ -48,12 +47,11 @@ fun TextFieldSearch(
             Text(
                 text = placeHolder,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 12.sp.from(context),
-                    fontWeight = FontWeight.Normal,
                     color = Color.Gray
                 )
             )
         },
+        leadingIcon = leadingIcon,
         trailingIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.search),
@@ -83,7 +81,8 @@ fun TextFieldSearch(
         colors = TextFieldDefaults.outlinedTextFieldColors(
             disabledBorderColor = Color.Gray,
             unfocusedBorderColor = Color.Gray,
-            focusedBorderColor = Secondary
+            focusedBorderColor = Secondary,
+            containerColor = Color.White
         )
     )
 }

@@ -62,6 +62,5 @@ fun CardMap(
                 )
             }
         }
-
     }
 }
