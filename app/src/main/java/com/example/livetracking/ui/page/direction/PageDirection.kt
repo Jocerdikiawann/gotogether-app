@@ -30,13 +30,29 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 
+data class DestinationStateUI(
+    val loading: Boolean = true,
+    val error: Boolean = true,
+    val errMsg: String = "",
+    val destination: LatLng = LatLng(-6.2881792, 106.7614208),
+)
+
 data class DirectionStateUI(
     val loading: Boolean = true,
     val error: Boolean = true,
     val errMsg: String = "",
-    val myLoc: LatLng = LatLng(-6.2881792, 106.7614208),
-    val destination: LatLng = LatLng(-6.2881792, 106.7614208),
+    val data:List<DirectionData> = listOf()
+)
+
+data class DirectionData(
+    val duration: String = "",
+    val distance: String = "",
     val route: List<LatLng> = listOf()
+)
+
+data class LocationStateUI(
+    val lat: Double = -6.2881792,
+    val lng: Double = 106.7614208,
 )
 
 @Composable

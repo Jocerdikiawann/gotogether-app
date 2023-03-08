@@ -48,7 +48,7 @@ fun PageSearch(
     onValueChange: (String) -> Unit,
     focusRequester: FocusRequester,
     interactionSource: MutableInteractionSource,
-    onNavigateToDirection: () -> Unit,
+    onNavigateToDirection: (String) -> Unit,
     onBackStack: () -> Unit,
 ) {
     Scaffold(
@@ -80,10 +80,11 @@ fun PageSearch(
                     CardRecentHistory(
                         context = context,
                         onClickAction = {
-                            onNavigateToDirection()
+                            onNavigateToDirection(result.placeId)
                         },
                         fullAddress = result.fullAddress,
                         title = result.primaryText,
+                        distance = result.distanceMeters
                     )
                     if (index != resultList.data.lastIndex) Divider(
                         modifier = modifier.padding(

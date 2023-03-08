@@ -27,9 +27,9 @@ object Search {
     const val routeName = "search"
     const val locationArgs = "location"
 
-    fun NavHostController.navigateToDirection() {
-        navigate(Direction.routeName) {
-            popUpTo(routeName) {
+    fun NavHostController.navigateToDirection(args: String) {
+        navigate("${Direction.routeName}/$args") {
+            popUpTo("${routeName}/{$locationArgs}") {
                 inclusive = true
             }
             launchSingleTop = true
@@ -67,7 +67,7 @@ fun NavGraphBuilder.routeSearch(
         })
 
         LaunchedEffect(key1 = textSearch, block = {
-            delay(800)
+            delay(500)
             if (textSearch.isNotBlank()) {
                 viewModel.getCompleteLocation(textSearch)
             }
@@ -88,7 +88,7 @@ fun NavGraphBuilder.routeSearch(
             },
             onNavigateToDirection = {
                 with(navHostController) {
-                    navigateToDirection()
+                    navigateToDirection(it)
                 }
             },
             resultList = searchStateUI

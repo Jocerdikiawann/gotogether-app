@@ -67,6 +67,10 @@ object Libs {
         val placeKtx by lazy { "com.google.maps.android:places-ktx:0.4.0" }
     }
 
+    object Joda {
+        val time by lazy {"joda-time:joda-time:2.12.2"}
+    }
+
     object Junit {
         val junit by lazy { "junit:junit:4.13.2" }
     }

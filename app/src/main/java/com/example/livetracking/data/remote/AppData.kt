@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import com.example.livetracking.data.local.room.AppDatabase
 import com.example.livetracking.data.remote.design.GoogleDataSource
+import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.data.remote.impl.GoogleDataSourceImpl
+import com.example.livetracking.data.remote.impl.RoutesDataSourceImpl
 import com.example.livetracking.data.remote.services.GoogleApiServices
+import com.example.livetracking.data.remote.services.RoutesApiServices
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -45,6 +48,32 @@ class AppData {
             val service = retrofit.create(GoogleApiServices::class.java)
 
             return GoogleDataSourceImpl(service)
+        }
+
+        fun routesDataSource(
+            apiKey: String,
+            baseUrl: String
+        ): RoutesDataSource {
+            val okHttpClient = OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor)
+                .addNetworkInterceptor { chain ->
+                    val origin = chain.request()
+                    val request =
+                        origin.newBuilder().method(origin.method, origin.body)
+                            .addHeader("X-Goog-Api-Key", apiKey).build()
+                    chain.proceed(request)
+                }
+                .connectTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .readTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .writeTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .build()
+
+            val retrofit = Retrofit.Builder()
+                .baseUrl("https://${baseUrl}/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build()
+            val service = retrofit.create(RoutesApiServices::class.java)
+            return RoutesDataSourceImpl(service)
         }
 
         fun initDatabase(appContext: Context): AppDatabase = Room.databaseBuilder(

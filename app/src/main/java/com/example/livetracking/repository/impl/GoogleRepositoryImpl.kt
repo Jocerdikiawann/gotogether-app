@@ -1,14 +1,26 @@
 package com.example.livetracking.repository.impl
 
+import android.util.Log
 import com.example.livetracking.data.coroutines.DispatcherProvider
 import com.example.livetracking.data.remote.design.GoogleDataSource
+import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.LocationData
+import com.example.livetracking.domain.model.request.Destination
+import com.example.livetracking.domain.model.request.Loc
+import com.example.livetracking.domain.model.request.LocLatLng
+import com.example.livetracking.domain.model.request.RouteModifiers
+import com.example.livetracking.domain.model.request.RoutesRequest
 import com.example.livetracking.domain.model.response.GeocodingResponse
 import com.example.livetracking.domain.model.response.GoogleMapsInfoModel
+import com.example.livetracking.domain.model.response.RoutesResponse
+import com.example.livetracking.domain.utils.RouteTravelModes
+import com.example.livetracking.domain.utils.RoutingPreference
 import com.example.livetracking.domain.utils.TravelModes
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.utils.CalculationBoundsUtils
+import com.example.livetracking.utils.formatDate
+import com.example.livetracking.utils.getTodayTimeStamp
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -31,6 +43,7 @@ import java.io.IOException
 class GoogleRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider,
     private val googleDataSource: GoogleDataSource,
+    private val routesDataSource: RoutesDataSource,
     private val placesClient: PlacesClient,
 ) : GoogleRepository {
     override suspend fun getDirection(
@@ -53,6 +66,62 @@ class GoogleRepositoryImpl(
             emit(DataState.onFailure("No internet connection"))
         }
     }
+
+    override suspend fun getRoutesDirection(
+        origin: LatLng,
+        destination: LatLng,
+        travelModes: RouteTravelModes
+    ): Flow<DataState<RoutesResponse>> = flow<DataState<RoutesResponse>> {
+        emit(DataState.onLoading)
+        try {
+            when (val result = routesDataSource.getRoutesDirection(
+                body = RoutesRequest(
+                    origin = Destination(
+                        location = Loc(
+                            latLng = LocLatLng(
+                                latitude = origin.latitude,
+                                longitude = origin.longitude
+                            )
+                        )
+                    ),
+                    units = "IMPERIAL",
+                    travelMode = travelModes,
+                    languageCode = "en-US",
+                    routingPreference = RoutingPreference.TRAFFIC_AWARE,
+                    routeModifiers = RouteModifiers(
+                        avoidTolls = false,
+                        avoidFerries = false,
+                        avoidHighways = false,
+                    ),
+                    departureTime = getTodayTimeStamp().formatDate("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'"),
+                    computeAlternativeRoutes = false,
+                    destination = Destination(
+                        location = Loc(
+                            latLng = LocLatLng(
+                                latitude = destination.latitude,
+                                longitude = destination.longitude
+                            )
+                        )
+                    )
+                ),
+                fieldMask = "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline",
+            )) {
+                is DataState.onData -> {
+                    emit(DataState.onData(result.data))
+                }
+                is DataState.onFailure -> {
+                    emit(DataState.onFailure(result.error_message))
+                }
+                DataState.onLoading -> emit(DataState.onLoading)
+            }
+        } catch (e: HttpException) {
+            Log.e("ceke", e.toString())
+            emit(DataState.onFailure(e.message ?: "Internal error"))
+        } catch (e: IOException) {
+            Log.e("ceke", e.toString())
+            emit(DataState.onFailure(e.message ?: "No internet connection"))
+        }
+    }.flowOn(dispatcherProvider.default())
 
     override suspend fun geocodingLocation(latlng: String): Flow<DataState<GeocodingResponse>> =
         flow {
@@ -105,7 +174,7 @@ class GoogleRepositoryImpl(
             }
         }.flowOn(dispatcherProvider.io())
 
-    override suspend fun fetchPlaces(placeId: String): Flow<DataState<Place>> =
+    override suspend fun getDetailPlace(placeId: String): Flow<DataState<Place>> =
         flow<DataState<Place>> {
             emit(DataState.onLoading)
             val request =
@@ -113,7 +182,9 @@ class GoogleRepositoryImpl(
                     placeId,
                     listOf(
                         Place.Field.ID, Place.Field.NAME,
-                        Place.Field.LAT_LNG, Place.Field.ADDRESS
+                        Place.Field.LAT_LNG, Place.Field.ADDRESS,
+                        Place.Field.OPENING_HOURS, Place.Field.RATING,
+                        Place.Field.BUSINESS_STATUS
                     ),
                 )
             try {

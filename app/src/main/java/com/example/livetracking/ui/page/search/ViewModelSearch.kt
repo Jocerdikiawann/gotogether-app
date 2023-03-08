@@ -38,8 +38,14 @@ class ViewModelSearch @Inject constructor(
                     is DataState.onData -> {
                         SearchStateUI(
                             data = it.data.map { prediction ->
+                                val distance = (prediction.distanceMeters ?: 0).toDouble() / 1000
+                                val distanceString = if (distance >= 1) {
+                                    String.format("%.1f KM", distance)
+                                } else {
+                                    String.format("%.0f M", distance * 1000)
+                                }
                                 SearchResultState(
-                                    distanceMeters = "${prediction.distanceMeters ?: 0} Meters",
+                                    distanceMeters = distanceString,
                                     fullAddress = prediction.getFullText(null).toString(),
                                     placeId = prediction.placeId,
                                     placeTypes = prediction.placeTypes,

@@ -6,3 +6,11 @@ enum class TravelModes  {
     bicycling,
     transit,
 }
+
+enum class RouteTravelModes {
+    TRAVEL_MODE_UNSPECIFIED,
+    DRIVE,
+    BICYCLE,
+    WALK,
+    TWO_WHEELER
+}

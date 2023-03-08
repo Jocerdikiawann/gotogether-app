@@ -2,12 +2,14 @@ package com.example.livetracking.ui.page.direction
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -27,7 +29,7 @@ object Direction {
     const val routeName = "direction"
     const val placeIdArgs = "placeId"
 
-    internal class DirectionArgs(val destination: String) {
+    internal class DirectionArgs(val placeId: String) {
         constructor(savedStateHandle: SavedStateHandle) :
                 this(checkNotNull(savedStateHandle[placeIdArgs]) as String)
     }
@@ -46,16 +48,21 @@ fun NavGraphBuilder.routeDirection(
             FocusRequester()
         }
         val interactionSource = MutableInteractionSource()
+        val viewModel = hiltViewModel<ViewModelDirection>()
         var textSearch by remember { mutableStateOf("") }
         var scope = rememberCoroutineScope()
 
         var mapsReady by remember { mutableStateOf(false) }
+        val locationStateUI by viewModel.locationStateUI.observeAsState(initial = LocationStateUI())
+        val destinationStateUI by viewModel.destinationStateUI.observeAsState(initial = DestinationStateUI())
+        val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
+
 
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
                 LatLng(
-                    0.0,
-                    0.0
+                    locationStateUI.lat,
+                    locationStateUI.lng
                 ), 15f
             )
         }
@@ -76,8 +83,8 @@ fun NavGraphBuilder.routeDirection(
                     update = CameraUpdateFactory.newCameraPosition(
                         CameraPosition(
                             LatLng(
-                                0.0,
-                                0.0
+                                locationStateUI.lat,
+                                locationStateUI.lng
                             ), 15f, 0f, 0f
                         ),
                     ),
@@ -95,7 +102,7 @@ fun NavGraphBuilder.routeDirection(
                 textSearch = it
             },
             cameraPositionState = cameraPositionState,
-            myLoc = LatLng(0.0, 0.0),
+            myLoc = LatLng(locationStateUI.lat, locationStateUI.lng),
             onBackStack = {
 
             },
@@ -111,15 +118,15 @@ fun NavGraphBuilder.routeDirection(
                 GoogleMapOptions().camera(
                     CameraPosition.fromLatLngZoom(
                         LatLng(
-                            0.0,
-                            0.0
+                            locationStateUI.lat,
+                            locationStateUI.lng
                         ),
                         15f
                     )
                 )
             },
-            destination = LatLng(0.0, 0.0),
-            route = listOf()
+            destination = destinationStateUI.destination,
+            route = directionStateUI.data.firstOrNull()?.route ?: listOf()
         )
     }
 }

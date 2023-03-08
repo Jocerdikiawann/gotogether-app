@@ -39,6 +39,7 @@ fun CardRecentHistory(
     modifier: Modifier = Modifier,
     title: String,
     fullAddress: String,
+    distance:String,
     context: Context,
     onClickAction: () -> Unit,
 ) {
@@ -54,17 +55,31 @@ fun CardRecentHistory(
             ),
         horizontalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = modifier
-                .clip(CircleShape)
-                .background(GrayBG)
-                .width(40.dp.from(context))
-                .height(40.dp.from(context)),
-            contentAlignment = Alignment.Center
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_history),
-                contentDescription = "ic_marker_history",
+            Box(
+                modifier = modifier
+                    .clip(CircleShape)
+                    .background(GrayBG)
+                    .width(40.dp.from(context))
+                    .height(40.dp.from(context)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_history),
+                    contentDescription = "ic_marker_history",
+                )
+            }
+            Text(
+                text = distance,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Light,
+                    fontSize = 12.sp.from(context),
+                    color = Color.Gray
+                ),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
             )
         }
         Spacer(modifier = modifier.width(10.dp.from(context)))
