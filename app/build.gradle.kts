@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -50,7 +48,7 @@ android {
             manifestPlaceholders["LABEL"] = "$labelApp"
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
-            buildConfigField("String","BASE_URL_ROUTES_API","\"$baseUrlRoutesApi\"")
+            buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
         }
         debug {
             isMinifyEnabled = false
@@ -62,7 +60,7 @@ android {
             manifestPlaceholders["LABEL"] = "$labelApp"
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
-            buildConfigField("String","BASE_URL_ROUTES_API","\"$baseUrlRoutesApi\"")
+            buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
         }
     }
     compileOptions {
@@ -96,6 +94,7 @@ dependencies {
     implementation(platform(Libs.SquareUp.okhttpBOM))
     implementation(Libs.SquareUp.okhttp)
     implementation(Libs.SquareUp.logging)
+    implementation(Libs.AndroidX.Compose.util)
     implementation(Libs.Google.gsonConverter)
     implementation(Libs.Maps.utils)
     implementation(Libs.AndroidX.multidex)

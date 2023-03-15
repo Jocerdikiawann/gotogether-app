@@ -18,6 +18,7 @@ object Libs {
             val uiTooling by lazy { "androidx.compose.ui:ui-tooling:$composeVersion" }
             val uiTestManifest by lazy { "androidx.compose.ui:ui-test-manifest:$composeVersion" }
             val liveData by lazy { "androidx.compose.runtime:runtime-livedata:1.3.2" }
+            val util by lazy {"androidx.compose.ui:ui-util:1.3.3"}
         }
 
         object Test {

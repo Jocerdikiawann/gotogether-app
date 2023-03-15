@@ -16,11 +16,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.livetracking.ui.component.bottomsheet.rememberBottomSheetScaffoldState
 import com.example.livetracking.ui.page.direction.Direction.placeIdArgs
+import com.example.livetracking.utils.GyroscopeUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
@@ -51,11 +54,23 @@ fun NavGraphBuilder.routeDirection(
         val viewModel = hiltViewModel<ViewModelDirection>()
         var textSearch by remember { mutableStateOf("") }
         var scope = rememberCoroutineScope()
+        val sheetState = rememberBottomSheetScaffoldState()
 
         var mapsReady by remember { mutableStateOf(false) }
         val locationStateUI by viewModel.locationStateUI.observeAsState(initial = LocationStateUI())
         val destinationStateUI by viewModel.destinationStateUI.observeAsState(initial = DestinationStateUI())
         val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
+
+        val bounds = LatLngBounds.builder()
+            .include(
+                LatLng(
+                    locationStateUI.lat,
+                    locationStateUI.lng
+                )
+            )
+            .include(
+                destinationStateUI.destination
+            ).build()
 
 
         val cameraPositionState = rememberCameraPositionState {
@@ -80,13 +95,9 @@ fun NavGraphBuilder.routeDirection(
         fun updateUiAndLocation() {
             scope.launch {
                 cameraPositionState.animate(
-                    update = CameraUpdateFactory.newCameraPosition(
-                        CameraPosition(
-                            LatLng(
-                                locationStateUI.lat,
-                                locationStateUI.lng
-                            ), 15f, 0f, 0f
-                        ),
+                    update = CameraUpdateFactory.newLatLngBounds(
+                        bounds,
+                        100
                     ),
                     durationMs = 1000
                 )
@@ -95,6 +106,7 @@ fun NavGraphBuilder.routeDirection(
 
         PageDirection(
             context = context,
+            sheetState = sheetState,
             textSearch = textSearch,
             focusRequester = focusRequester,
             interactionSource = interactionSource,
@@ -126,7 +138,8 @@ fun NavGraphBuilder.routeDirection(
                 )
             },
             destination = destinationStateUI.destination,
-            route = directionStateUI.data.firstOrNull()?.route ?: listOf()
+            route = directionStateUI.data.firstOrNull()?.route ?: listOf(),
+            rotationMarker = 0f
         )
     }
 }

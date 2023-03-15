@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.livetracking.R
+import com.example.livetracking.utils.BitmapDescriptor
 import com.example.livetracking.utils.from
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.LatLng
@@ -29,6 +31,7 @@ fun CardMap(
     modifier: Modifier = Modifier,
     ctx: Context,
     latLng: LatLng,
+    rotationMarker:Float,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
     mapsUiSettings: MapUiSettings,
@@ -56,9 +59,11 @@ fun CardMap(
                 }
             ) {
                 Marker(
+                    icon = BitmapDescriptor(ctx, R.drawable.ic_directions),
                     state = MarkerState(latLng),
                     title = "Your Location Here",
                     snippet = "marker in your location",
+                    rotation = rotationMarker
                 )
             }
         }

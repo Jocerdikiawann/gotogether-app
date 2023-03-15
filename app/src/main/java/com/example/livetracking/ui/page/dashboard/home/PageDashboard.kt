@@ -64,12 +64,19 @@ data class LocationStateUI(
     val isGpsOn: Boolean = false,
 )
 
+data class GyroScopeStateUI(
+    val pitch:Float = 0f,
+    val roll:Float = 0f,
+    val yaw:Float = 0f
+)
+
 @Composable
 fun PageDashboard(
     modifier: Modifier = Modifier,
     havePermission: LocationStateUI,
     dashboardStateUI: DashboardStateUI,
     cameraPositionState: CameraPositionState,
+    rotationMarker:Float,
     onMapReady: (Boolean) -> Unit,
     mapsUiSettings: MapUiSettings,
     updateUiAndLocation: () -> Unit,
@@ -151,7 +158,8 @@ fun PageDashboard(
                                     15f
                                 )
                             )
-                        }
+                        },
+                        rotationMarker = rotationMarker
                     )
                     Spacer(modifier = modifier.height(12.dp.from(ctx)))
                     Row(

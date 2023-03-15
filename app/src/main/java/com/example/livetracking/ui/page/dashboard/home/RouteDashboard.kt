@@ -3,6 +3,7 @@ package com.example.livetracking.ui.page.dashboard.home
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,8 @@ fun NavGraphBuilder.routeDashboard(
         val havePermission by viewModel.havePermission.observeAsState(LocationStateUI())
         val dashboardStateUI by viewModel.dashboardStateUI.observeAsState(DashboardStateUI())
         val addressStateUI by viewModel.addressStateUI.observeAsState(AddressStateUI())
+        val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(GyroScopeStateUI())
+
         var mapsReady by remember { mutableStateOf(false) }
 
         val cameraPositionState = rememberCameraPositionState {
@@ -49,7 +52,8 @@ fun NavGraphBuilder.routeDashboard(
                 LatLng(
                     dashboardStateUI.lat,
                     dashboardStateUI.lng
-                ), 15f
+                ),
+                15f,
             )
         }
 
@@ -88,7 +92,7 @@ fun NavGraphBuilder.routeDashboard(
                             LatLng(
                                 dashboardStateUI.lat,
                                 dashboardStateUI.lng
-                            ), 15f, 0f, 0f
+                            ), 15f, 0f, gyroScopeStateUI.yaw
                         ),
                     ),
                     durationMs = 1000
@@ -139,6 +143,7 @@ fun NavGraphBuilder.routeDashboard(
                 },
                 focusRequester = focusRequester,
                 interactionSource = interactionSource,
+                rotationMarker = gyroScopeStateUI.yaw
             )
         }
     }

@@ -14,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.utils.GyroscopeUtils
 import com.example.livetracking.utils.LocationUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -37,7 +38,11 @@ class ViewModelDashboard @Inject constructor(
     private var _dashboardStateUI = MutableLiveData<DashboardStateUI>(DashboardStateUI())
     val dashboardStateUI get() = _dashboardStateUI
 
+    private var _gyroScopeStateUI = MutableLiveData<GyroScopeStateUI>(GyroScopeStateUI())
+    val gyroScopeStateUI get() = _gyroScopeStateUI
+
     private val locationUtils = LocationUtils(context)
+    private val gyroscopeUtils = GyroscopeUtils(context)
 
     private val locationObserver = Observer<LocationData> {
         _dashboardStateUI.postValue(
@@ -45,8 +50,19 @@ class ViewModelDashboard @Inject constructor(
         )
     }
 
+    private val gyroScopeObserver = Observer<Triple<Float, Float, Float>> {
+        _gyroScopeStateUI.postValue(
+            GyroScopeStateUI(
+                pitch = it.first,
+                roll = it.second,
+                yaw = it.third
+            )
+        )
+    }
+
     init {
         locationUtils.observeForever(locationObserver)
+        gyroscopeUtils.observeForever(gyroScopeObserver)
         havePermission()
         startLocationUpdate()
     }

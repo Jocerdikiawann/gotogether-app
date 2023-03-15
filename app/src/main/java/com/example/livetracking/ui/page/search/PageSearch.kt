@@ -12,6 +12,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
@@ -73,37 +74,41 @@ fun PageSearch(
 
         },
     ) {
-        LazyColumn(modifier = modifier.padding(it), content = {
-            val dataWhenLoading = listOf(1, 2, 3, 4, 5)
-            if (!resultList.loading && !resultList.error) {
-                itemsIndexed(resultList.data) { index, result ->
-                    CardRecentHistory(
-                        context = context,
-                        onClickAction = {
-                            onNavigateToDirection(result.placeId)
-                        },
-                        fullAddress = result.fullAddress,
-                        title = result.primaryText,
-                        distance = result.distanceMeters
-                    )
-                    if (index != resultList.data.lastIndex) Divider(
-                        modifier = modifier.padding(
-                            vertical = 10.dp.from(context),
-                            horizontal = 12.dp.from(context)
+        LazyColumn(
+            modifier = modifier.padding(it),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = {
+                val dataWhenLoading = listOf(1, 2, 3, 4, 5)
+                if (!resultList.loading && !resultList.error) {
+                    itemsIndexed(resultList.data) { index, result ->
+                        CardRecentHistory(
+                            context = context,
+                            onClickAction = {
+                                onNavigateToDirection(result.placeId)
+                            },
+                            fullAddress = result.fullAddress,
+                            title = result.primaryText,
+                            distance = result.distanceMeters
                         )
-                    )
-                }
-            } else if (resultList.loading) {
-                itemsIndexed(dataWhenLoading) { index, _ ->
-                    CardRecentHistoryShimmer(context = context)
-                    if (index != dataWhenLoading.lastIndex) Divider(
-                        modifier = modifier.padding(
-                            vertical = 10.dp.from(context),
-                            horizontal = 12.dp.from(context)
+                        if (index != resultList.data.lastIndex) Divider(
+                            modifier = modifier.padding(
+                                vertical = 10.dp.from(context),
+                                horizontal = 12.dp.from(context)
+                            )
                         )
-                    )
+                    }
+                } else if (resultList.loading) {
+                    itemsIndexed(dataWhenLoading) { index, _ ->
+                        CardRecentHistoryShimmer(context = context)
+                        if (index != dataWhenLoading.lastIndex) Divider(
+                            modifier = modifier.padding(
+                                vertical = 10.dp.from(context),
+                                horizontal = 12.dp.from(context)
+                            )
+                        )
+                    }
                 }
-            }
-        })
+            })
     }
+
 }
