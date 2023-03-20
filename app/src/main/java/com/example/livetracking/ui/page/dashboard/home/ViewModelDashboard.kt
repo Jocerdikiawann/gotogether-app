@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
+import com.example.livetracking.domain.model.GyroData
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.utils.GyroscopeUtils
@@ -38,7 +39,7 @@ class ViewModelDashboard @Inject constructor(
     private var _dashboardStateUI = MutableLiveData<DashboardStateUI>(DashboardStateUI())
     val dashboardStateUI get() = _dashboardStateUI
 
-    private var _gyroScopeStateUI = MutableLiveData<GyroScopeStateUI>(GyroScopeStateUI())
+    private var _gyroScopeStateUI = MutableLiveData<GyroData>(GyroData())
     val gyroScopeStateUI get() = _gyroScopeStateUI
 
     private val locationUtils = LocationUtils(context)
@@ -50,12 +51,12 @@ class ViewModelDashboard @Inject constructor(
         )
     }
 
-    private val gyroScopeObserver = Observer<Triple<Float, Float, Float>> {
+    private val gyroScopeObserver = Observer<GyroData> {
         _gyroScopeStateUI.postValue(
-            GyroScopeStateUI(
-                pitch = it.first,
-                roll = it.second,
-                yaw = it.third
+            GyroData(
+                pitch = it.pitch,
+                roll = it.roll,
+                azimuth = it.azimuth
             )
         )
     }

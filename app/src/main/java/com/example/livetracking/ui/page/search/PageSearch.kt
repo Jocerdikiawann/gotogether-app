@@ -2,6 +2,7 @@ package com.example.livetracking.ui.page.search
 
 import android.content.Context
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,7 +77,6 @@ fun PageSearch(
     ) {
         LazyColumn(
             modifier = modifier.padding(it),
-            horizontalAlignment = Alignment.CenterHorizontally,
             content = {
                 val dataWhenLoading = listOf(1, 2, 3, 4, 5)
                 if (!resultList.loading && !resultList.error) {

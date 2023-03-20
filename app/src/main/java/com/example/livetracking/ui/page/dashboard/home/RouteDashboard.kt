@@ -3,7 +3,6 @@ package com.example.livetracking.ui.page.dashboard.home
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.example.livetracking.domain.model.GyroData
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.ui.page.dashboard.main.DashboardMain
 import com.example.livetracking.utils.PermissionUtils
@@ -43,17 +43,16 @@ fun NavGraphBuilder.routeDashboard(
         val havePermission by viewModel.havePermission.observeAsState(LocationStateUI())
         val dashboardStateUI by viewModel.dashboardStateUI.observeAsState(DashboardStateUI())
         val addressStateUI by viewModel.addressStateUI.observeAsState(AddressStateUI())
-        val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(GyroScopeStateUI())
+        val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(GyroData())
 
         var mapsReady by remember { mutableStateOf(false) }
 
         val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(
+            position = CameraPosition(
                 LatLng(
                     dashboardStateUI.lat,
                     dashboardStateUI.lng
-                ),
-                15f,
+                ), 15f, 0f, 0f
             )
         }
 
@@ -92,14 +91,11 @@ fun NavGraphBuilder.routeDashboard(
                             LatLng(
                                 dashboardStateUI.lat,
                                 dashboardStateUI.lng
-                            ), 15f, 0f, gyroScopeStateUI.yaw
+                            ), 15f, 0f, 0f
                         ),
                     ),
-                    durationMs = 1000
+                    durationMs = 500
                 )
-//            withTimeoutOrNull(15000) {
-//                viewModel.getAddress(dashboardStateUI.lat, dashboardStateUI.lng)
-//            }
             }
         }
 
@@ -132,10 +128,9 @@ fun NavGraphBuilder.routeDashboard(
                 addressStateUI = addressStateUI,
                 cameraPositionState = cameraPositionState,
                 ctx = ctx,
-                onMapReady = {
-                    mapsReady = it
+                onMapReady = { isReady ->
+                    mapsReady = isReady
                 },
-                updateUiAndLocation = { updateUiAndLocation() },
                 onClickSearchField = {
                     onNavigateToSearchLocation(
                         LocationData(dashboardStateUI.lat, dashboardStateUI.lng)
@@ -143,7 +138,7 @@ fun NavGraphBuilder.routeDashboard(
                 },
                 focusRequester = focusRequester,
                 interactionSource = interactionSource,
-                rotationMarker = gyroScopeStateUI.yaw
+                rotationMarker = gyroScopeStateUI.azimuth
             )
         }
     }

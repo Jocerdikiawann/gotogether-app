@@ -2,6 +2,7 @@ package com.example.livetracking.repository.design
 
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.LocationData
+import com.example.livetracking.domain.model.PlaceData
 import com.example.livetracking.domain.model.request.RoutesRequest
 import com.example.livetracking.domain.model.response.GeocodingResponse
 import com.example.livetracking.domain.model.response.GoogleMapsInfoModel
@@ -37,5 +38,5 @@ interface GoogleRepository {
 
     suspend fun getDetailPlace(
         placeId: String,
-    ): Flow<DataState<Place>>
+    ): Flow<DataState<PlaceData>>
 }

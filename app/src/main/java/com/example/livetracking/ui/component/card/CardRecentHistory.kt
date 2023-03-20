@@ -120,7 +120,6 @@ fun CardRecentHistoryShimmer(
                 horizontal = 12.dp.from(context),
                 vertical = 10.dp.from(context)
             ),
-        horizontalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = modifier

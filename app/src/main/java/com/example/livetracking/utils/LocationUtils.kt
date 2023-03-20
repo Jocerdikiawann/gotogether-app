@@ -6,6 +6,7 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -22,17 +23,19 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.Priority
 
-class LocationUtils(val context: Context) : LiveData<LocationData>() {
+class LocationUtils(val context: Context, val DURATION_FOR_CHANGE_LOCATION: Long = 15000) :
+    LiveData<LocationData>() {
 
-    companion object {
-        //In millis
-        private const val DURATION_FOR_CHANGE_LOCATION: Long = 15000
-        val locationRequest: LocationRequest =
-            LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, DURATION_FOR_CHANGE_LOCATION)
-                .setIntervalMillis(DURATION_FOR_CHANGE_LOCATION)
-                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                .build()
-    }
+    private var lastUpdateTime: Long = 0
+    private var lastLocation: Location? = null
+
+
+    private val locationRequest: LocationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, DURATION_FOR_CHANGE_LOCATION)
+            .setIntervalMillis(DURATION_FOR_CHANGE_LOCATION)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .build()
+
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
@@ -115,15 +118,38 @@ class LocationUtils(val context: Context) : LiveData<LocationData>() {
 
                 }
                 LocationSettingsStatusCodes.SUCCESS -> {
-                    Log.e("SUCCESS2", "onGps is successes")
+
                 }
             }
         }
     }
 
+    private fun filterLocation(
+        location: Location,
+        accuracyThreshold: Float = 50.0f,
+        maxElapsedMs: Long = 10000L
+    ): Location? {
+        val elapsedTime = SystemClock.elapsedRealtime() - lastUpdateTime
+        if (lastLocation == null ||
+            location.accuracy <=
+            accuracyThreshold ||
+            (elapsedTime >=
+                    maxElapsedMs &&
+                    location.accuracy <=
+                    lastLocation!!.accuracy)
+        ) {
+            lastLocation = location
+            lastUpdateTime = SystemClock.elapsedRealtime()
+            return location
+        }
+        return null
+    }
+
     private fun setLocationData(location: Location?) {
-        location?.let { location ->
-            value = LocationData(location.latitude, location.longitude, )
+        location?.let { loc ->
+            filterLocation(loc)?.let { loc2 ->
+                value = LocationData(loc2.latitude, loc2.longitude)
+            }
         }
     }
 }

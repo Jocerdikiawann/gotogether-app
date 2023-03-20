@@ -6,6 +6,7 @@ import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.LocationData
+import com.example.livetracking.domain.model.PlaceData
 import com.example.livetracking.domain.model.request.Destination
 import com.example.livetracking.domain.model.request.Loc
 import com.example.livetracking.domain.model.request.LocLatLng
@@ -27,8 +28,10 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
+import com.google.android.libraries.places.api.net.FetchPhotoRequest
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.ktx.api.net.awaitFetchPhoto
 import com.google.android.libraries.places.ktx.api.net.awaitFetchPlace
 import com.google.android.libraries.places.ktx.api.net.awaitFindAutocompletePredictions
 import com.google.android.libraries.places.ktx.api.net.findAutocompletePredictionsRequest
@@ -174,27 +177,34 @@ class GoogleRepositoryImpl(
             }
         }.flowOn(dispatcherProvider.io())
 
-    override suspend fun getDetailPlace(placeId: String): Flow<DataState<Place>> =
-        flow<DataState<Place>> {
+    override suspend fun getDetailPlace(placeId: String): Flow<DataState<PlaceData>> =
+        flow<DataState<PlaceData>> {
             emit(DataState.onLoading)
-            val request =
+            val placeRequest =
                 FetchPlaceRequest.newInstance(
                     placeId,
                     listOf(
                         Place.Field.ID, Place.Field.NAME,
                         Place.Field.LAT_LNG, Place.Field.ADDRESS,
-                        Place.Field.OPENING_HOURS, Place.Field.RATING,
-                        Place.Field.BUSINESS_STATUS
+                        Place.Field.ICON_URL,Place.Field.PHOTO_METADATAS
                     ),
                 )
             try {
-                val response = placesClient.awaitFetchPlace(request = request)
-                emit(DataState.onData(response.place))
+                val response = placesClient.awaitFetchPlace(request = placeRequest)
+                response.place.photoMetadatas?.first()?.let {
+                    val photoRequest = FetchPhotoRequest.builder(it)
+                        .setMaxWidth(500)
+                        .setMaxHeight(300)
+                        .build()
+                    val imageResponse = placesClient.awaitFetchPhoto(photoRequest)
+                    emit(DataState.onData(PlaceData(response.place, imageResponse.bitmap)))
+                } ?: kotlin.run {
+                    emit(DataState.onData(PlaceData(response.place, null)))
+                }
             } catch (e: Exception) {
                 if (e is ApiException) {
                     emit(DataState.onFailure(e.message ?: "internal error"))
                 }
             }
-
         }
 }

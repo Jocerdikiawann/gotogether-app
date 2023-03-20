@@ -7,9 +7,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
+import com.example.livetracking.domain.model.GyroData
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.domain.utils.RouteTravelModes
 import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.utils.GyroscopeUtils
 import com.example.livetracking.utils.LocationUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
@@ -27,7 +29,8 @@ class ViewModelDirection @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
     private val destinationArgs = Direction.DirectionArgs(savedStateHandle)
-    private val locationUtils = LocationUtils(context)
+    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 0)
+    private val gyroscopeUtils = GyroscopeUtils(context)
 
     private var _destinationStateUI = MutableLiveData<DestinationStateUI>(DestinationStateUI())
     val destinationStateUI get() = _destinationStateUI
@@ -38,6 +41,9 @@ class ViewModelDirection @Inject constructor(
     private var _directionStateUI = MutableLiveData<DirectionStateUI>(DirectionStateUI())
     val directionStateUI get() = _directionStateUI
 
+    private var _gyroscopeStateUI = MutableLiveData<GyroData>(GyroData())
+    val gyroScopeStateUI get() = _gyroscopeStateUI
+
     private var _gpsIsOn = MutableLiveData<Boolean?>(null)
     val gpsIsOn get() = _gpsIsOn
 
@@ -47,19 +53,25 @@ class ViewModelDirection @Inject constructor(
         )
     }
 
+    private val gyroscopeObserver = Observer<GyroData> {
+        _gyroscopeStateUI.postValue(
+            GyroData(
+                pitch = it.pitch,
+                roll = it.roll,
+                azimuth = it.azimuth
+            )
+        )
+    }
+
     init {
         locationUtils.observeForever(locationObserver)
+        gyroscopeUtils.observeForever(gyroscopeObserver)
         getDetailPlace()
     }
 
     override fun onCleared() {
         super.onCleared()
         locationUtils.removeObserver(locationObserver)
-    }
-
-
-    internal fun startLocationUpdate() {
-        locationUtils.startLocationUpdate()
     }
 
     private fun getDirectionRoutes(destination: LatLng) =
@@ -77,8 +89,22 @@ class ViewModelDirection @Inject constructor(
                         is DataState.onData -> {
                             DirectionStateUI(
                                 data = it.data.routes?.map { route ->
+                                    val time = route.duration.replace("s", "").toIntOrNull()
                                     DirectionData(
-                                        duration = route.duration,
+                                        duration = when {
+                                            time == null -> {
+                                                "0 Sec"
+                                            }
+                                            (time >= 3600) -> {
+                                                "${time / 3600} Hour ${(time % 3600) / 60} Min"
+                                            }
+                                            time >= 60 -> {
+                                                "${time / 60} Min ${(time % 60)} Sec"
+                                            }
+                                            else -> {
+                                                "$time Sec"
+                                            }
+                                        },
                                         route = PolyUtil.decode(route.polyline.encodedPolyline),
                                         distance = if (route.distanceMeters >= 1000)
                                             "${route.distanceMeters / 1000} KM"
@@ -109,9 +135,12 @@ class ViewModelDirection @Inject constructor(
             _destinationStateUI.postValue(
                 when (it) {
                     is DataState.onData -> {
-                        it.data.latLng?.let { it1 -> getDirectionRoutes(it1) }
+                        it.data.place.latLng?.let { it1 -> getDirectionRoutes(it1) }
                         DestinationStateUI(
-                            destination = it.data.latLng ?: LatLng(0.0, 0.0),
+                            destination = it.data.place.latLng ?: LatLng(0.0, 0.0),
+                            title = it.data.place.name ?: "",
+                            address = it.data.place.address ?: "",
+                            image = it.data.photoBitmap
                         )
                     }
                     is DataState.onFailure -> {

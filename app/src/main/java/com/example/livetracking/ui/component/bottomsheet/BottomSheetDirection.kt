@@ -1,40 +1,186 @@
 package com.example.livetracking.ui.component.bottomsheet
 
 import android.content.Context
+import android.graphics.Bitmap
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.Build
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.livetracking.utils.coloredShadow
+import androidx.compose.ui.unit.sp
+import com.example.livetracking.R
 import com.example.livetracking.utils.from
+import com.google.accompanist.placeholder.PlaceholderHighlight
+import com.google.accompanist.placeholder.material.fade
+import com.google.accompanist.placeholder.placeholder
 
 @Composable
 fun BottomSheetDirection(
     modifier: Modifier = Modifier,
+    destinationLoading: Boolean,
+    directionLoading: Boolean,
+    imageUrl: Bitmap?,
+    title: String,
+    address: String,
+    estimateDistance: String,
+    estimateTime: String,
     context: Context,
 ) {
-    LazyColumn(content = {
-        item {
-            Row(modifier = modifier.fillMaxWidth()) {
-                Icon(Icons.Sharp.Build, contentDescription = "")
-                Text(text = "TEST BOTTOM SHEET")
+    LazyColumn(
+        content = {
+            item {
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = modifier
+                            .height(5.dp.from(context))
+                            .width(50.dp.from(context))
+                            .clip(RoundedCornerShape(10.dp.from(context)))
+                            .background(
+                                Color.Gray.copy(
+                                    alpha = .9f
+                                )
+                            ),
+                    )
+                }
             }
-        }
-        items(10) {
-            Text(text = "TEST = $it")
-        }
-    })
+            item {
+                Row(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(12.dp.from(context)),
+                ) {
+                    Image(
+                        bitmap = imageUrl?.asImageBitmap()
+                            ?: ImageBitmap.imageResource(id = R.drawable.placeholder_image_default),
+                        contentDescription = "image_place",
+                        contentScale = ContentScale.FillHeight,
+                        modifier = modifier
+                            .height(100.dp.from(context))
+                            .width(100.dp.from(context))
+                            .clip(RoundedCornerShape(8.dp.from(context)))
+                            .border(
+                                BorderStroke(1.dp.from(context), color = Color.Gray),
+                                shape = RoundedCornerShape(8.dp.from(context))
+                            )
+                            .placeholder(
+                                visible = destinationLoading,
+                                highlight = PlaceholderHighlight.fade(),
+                                shape = RoundedCornerShape(8.dp.from(context)),
+                                color = Color.Gray
+                            ),
+                    )
+                    Spacer(modifier = modifier.width(10.dp.from(context)))
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 14.sp.from(context),
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .placeholder(
+                                    visible = destinationLoading,
+                                    highlight = PlaceholderHighlight.fade(),
+                                    shape = RoundedCornerShape(8.dp.from(context)),
+                                    color = Color.Gray,
+                                )
+                        )
+                        Spacer(modifier.height(5.dp.from(context)))
+                        Text(
+                            text = address,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 12.sp.from(context),
+                                fontWeight = FontWeight.Normal,
+                                color = Color.Gray
+                            ),
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .placeholder(
+                                    visible = destinationLoading,
+                                    highlight = PlaceholderHighlight.fade(),
+                                    shape = RoundedCornerShape(8.dp.from(context)),
+                                    color = Color.Gray,
+                                ),
+                        )
+                        Spacer(modifier.height(10.dp.from(context)))
+                        Text(
+                            text = "$estimateDistance - $estimateTime",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 12.sp.from(context),
+                                fontWeight = FontWeight.Normal,
+                                color = Color.Gray
+                            ),
+                            modifier = modifier
+                                .fillMaxWidth()
+                                .placeholder(
+                                    visible = directionLoading,
+                                    highlight = PlaceholderHighlight.fade(),
+                                    shape = RoundedCornerShape(8.dp.from(context)),
+                                    color = Color.Gray,
+                                )
+                        )
+                        Spacer(modifier.height(5.dp.from(context)))
+                        Row(
+                            modifier = modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ElevatedButton(onClick = { /*TODO*/ }) {
+                                Text(
+                                    text = "Direction",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 12.sp.from(context),
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                )
+                            }
+                            ElevatedButton(onClick = { /*TODO*/ }) {
+                                Text(
+                                    text = "Direction",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 12.sp.from(context),
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        })
+}
+
+@Composable
+@Preview
+fun PreviewBottomSheetDirection() {
 }

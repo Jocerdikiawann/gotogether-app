@@ -16,9 +16,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.livetracking.domain.model.GyroData
 import com.example.livetracking.ui.component.bottomsheet.rememberBottomSheetScaffoldState
+import com.example.livetracking.ui.page.direction.Direction.onBack
 import com.example.livetracking.ui.page.direction.Direction.placeIdArgs
-import com.example.livetracking.utils.GyroscopeUtils
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.CameraPosition
@@ -31,6 +32,10 @@ import kotlinx.coroutines.launch
 object Direction {
     const val routeName = "direction"
     const val placeIdArgs = "placeId"
+
+    fun NavHostController.onBack() {
+        popBackStack()
+    }
 
     internal class DirectionArgs(val placeId: String) {
         constructor(savedStateHandle: SavedStateHandle) :
@@ -60,6 +65,7 @@ fun NavGraphBuilder.routeDirection(
         val locationStateUI by viewModel.locationStateUI.observeAsState(initial = LocationStateUI())
         val destinationStateUI by viewModel.destinationStateUI.observeAsState(initial = DestinationStateUI())
         val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
+        val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(initial = GyroData())
 
         val bounds = LatLngBounds.builder()
             .include(
@@ -116,7 +122,9 @@ fun NavGraphBuilder.routeDirection(
             cameraPositionState = cameraPositionState,
             myLoc = LatLng(locationStateUI.lat, locationStateUI.lng),
             onBackStack = {
-
+                with(navHostController) {
+                    onBack()
+                }
             },
             mapsUiSettings = mapsUiSettings,
             onMyLocationButtonClick = {
@@ -127,19 +135,18 @@ fun NavGraphBuilder.routeDirection(
                 updateUiAndLocation()
             },
             googleMapOptions = {
-                GoogleMapOptions().camera(
-                    CameraPosition.fromLatLngZoom(
-                        LatLng(
-                            locationStateUI.lat,
-                            locationStateUI.lng
-                        ),
-                        15f
-                    )
-                )
+                GoogleMapOptions()
             },
             destination = destinationStateUI.destination,
             route = directionStateUI.data.firstOrNull()?.route ?: listOf(),
-            rotationMarker = 0f
+            rotationMarker = gyroScopeStateUI.azimuth,
+            title = destinationStateUI.title,
+            address = destinationStateUI.address,
+            estimateDistance = directionStateUI.data.lastOrNull()?.distance ?: "",
+            estimateTime = directionStateUI.data.lastOrNull()?.duration ?: "",
+            destinationImage = destinationStateUI.image,
+            destinationLoading = destinationStateUI.loading,
+            directionLoading = directionStateUI.loading
         )
     }
 }
