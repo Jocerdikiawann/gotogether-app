@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
 import android.os.Bundle
+import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -56,6 +57,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MapsComposeExperimentalApi
+import com.google.maps.android.ui.AnimationUtil
 
 data class DestinationStateUI(
     val loading: Boolean = false,
@@ -84,7 +86,7 @@ data class LocationStateUI(
 )
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+    ExperimentalMaterial3Api::class,
     MapsComposeExperimentalApi::class
 )
 @Composable
@@ -171,7 +173,7 @@ fun PageDirection(
                     }
                     val grayPolyline = map.addPolyline(
                         PolylineOptions()
-                            .color(android.graphics.Color.GRAY)
+                            .color(android.graphics.Color.TRANSPARENT)
                             .startCap(SquareCap())
                             .endCap(SquareCap())
                             .jointType(ROUND)
@@ -201,20 +203,9 @@ fun PageDirection(
                 }
                 MapEffect(key1 = myLoc) {
                     myLoc?.let {
-                        val valueAnimator = ValueAnimator.ofFloat(0F, 1F)
-                        valueAnimator.duration = 3000
-                        valueAnimator.interpolator = LinearInterpolator()
-                        valueAnimator.addUpdateListener { anime ->
-                            val v = anime.animatedFraction
-                            val prevPosition = marker?.position
-                            prevPosition?.let {
-                                val newLng = (1 - v) * it.longitude + v * myLoc.longitude
-                                val newLat = (1 - v) * it.latitude + v * myLoc.latitude
-                                marker?.position = LatLng(newLat, newLng)
-                                marker?.setAnchor(0.5f, 0.5f)
-                            }
+                        marker?.let {
+                            AnimationUtil.animateMarkerTo(marker,myLoc)
                         }
-                        valueAnimator.start()
                     }
                 }
                 MapEffect(key1 = rotationMarker, block = {
@@ -249,42 +240,6 @@ fun PageDirection(
                         }
                     })
             }
-        }
-    }
-}
-
-@Composable
-fun rememberMapViewLifecycle(): MapView {
-    val context = LocalContext.current
-
-    val mapView = remember {
-        MapView(context).apply {
-            id = R.id.map
-        }
-    }
-
-    val lifeCycleObserver = rememberMapLifecycleObserver(mapView)
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-
-    DisposableEffect(lifecycle) {
-        lifecycle.addObserver(lifeCycleObserver)
-        onDispose { lifecycle.removeObserver(lifeCycleObserver) }
-    }
-
-    return mapView
-}
-
-@Composable
-fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver = remember(mapView) {
-    LifecycleEventObserver { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
-            Lifecycle.Event.ON_START -> mapView.onStart()
-            Lifecycle.Event.ON_RESUME -> mapView.onResume()
-            Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-            Lifecycle.Event.ON_STOP -> mapView.onStop()
-            Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-            else -> throw IllegalStateException()
         }
     }
 }

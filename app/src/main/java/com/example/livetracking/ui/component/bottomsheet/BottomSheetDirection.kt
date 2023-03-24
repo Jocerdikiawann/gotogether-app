@@ -116,7 +116,7 @@ fun BottomSheetDirection(
                                     color = Color.Gray,
                                 )
                         )
-                        Spacer(modifier.height(5.dp.from(context)))
+                         Spacer(modifier.height(5.dp.from(context)))
                         Text(
                             text = address,
                             style = MaterialTheme.typography.labelSmall.copy(
