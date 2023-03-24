@@ -24,7 +24,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.Priority
 
 class LocationUtils(val context: Context, val DURATION_FOR_CHANGE_LOCATION: Long = 15000) :
-    LiveData<LocationData>() {
+    LiveData<Location>() {
 
     private var lastUpdateTime: Long = 0
     private var lastLocation: Location? = null
@@ -148,7 +148,7 @@ class LocationUtils(val context: Context, val DURATION_FOR_CHANGE_LOCATION: Long
     private fun setLocationData(location: Location?) {
         location?.let { loc ->
             filterLocation(loc)?.let { loc2 ->
-                value = LocationData(loc2.latitude, loc2.longitude)
+                value = loc2
             }
         }
     }

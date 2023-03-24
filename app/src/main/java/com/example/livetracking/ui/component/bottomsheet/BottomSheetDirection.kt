@@ -17,8 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,7 +31,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,9 +48,10 @@ fun BottomSheetDirection(
     imageUrl: Bitmap?,
     title: String,
     address: String,
-    estimateDistance: String,
-    estimateTime: String,
+    estimateDistanceAndTime:String,
     context: Context,
+    isDirection: Boolean,
+    onDirectionClick: () -> Unit
 ) {
     LazyColumn(
         content = {
@@ -82,7 +83,7 @@ fun BottomSheetDirection(
                         bitmap = imageUrl?.asImageBitmap()
                             ?: ImageBitmap.imageResource(id = R.drawable.placeholder_image_default),
                         contentDescription = "image_place",
-                        contentScale = ContentScale.FillHeight,
+                        contentScale = ContentScale.Crop,
                         modifier = modifier
                             .height(100.dp.from(context))
                             .width(100.dp.from(context))
@@ -134,7 +135,7 @@ fun BottomSheetDirection(
                         )
                         Spacer(modifier.height(10.dp.from(context)))
                         Text(
-                            text = "$estimateDistance - $estimateTime",
+                            text = estimateDistanceAndTime,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 12.sp.from(context),
                                 fontWeight = FontWeight.Normal,
@@ -150,29 +151,22 @@ fun BottomSheetDirection(
                                 )
                         )
                         Spacer(modifier.height(5.dp.from(context)))
-                        Row(
+                        OutlinedButton(
+                            onClick = onDirectionClick,
                             modifier = modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.White
+                            ),
+                            border = BorderStroke(1.dp, Color.Gray),
+                            shape = RoundedCornerShape(8.dp.from(context))
                         ) {
-                            ElevatedButton(onClick = { /*TODO*/ }) {
-                                Text(
-                                    text = "Direction",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp.from(context),
-                                        fontWeight = FontWeight.Normal,
-                                    )
+                            Text(
+                                text = if (isDirection) "Stop" else "Direction",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 12.sp.from(context),
+                                    fontWeight = FontWeight.Normal,
                                 )
-                            }
-                            ElevatedButton(onClick = { /*TODO*/ }) {
-                                Text(
-                                    text = "Direction",
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 12.sp.from(context),
-                                        fontWeight = FontWeight.Normal,
-                                    )
-                                )
-                            }
+                            )
                         }
                     }
                 }

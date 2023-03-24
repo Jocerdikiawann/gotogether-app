@@ -58,8 +58,9 @@ fun NavGraphBuilder.routeDirection(
         val interactionSource = MutableInteractionSource()
         val viewModel = hiltViewModel<ViewModelDirection>()
         var textSearch by remember { mutableStateOf("") }
-        var scope = rememberCoroutineScope()
+        val scope = rememberCoroutineScope()
         val sheetState = rememberBottomSheetScaffoldState()
+        var isDirectionState by remember { mutableStateOf(false) }
 
         var mapsReady by remember { mutableStateOf(false) }
         val locationStateUI by viewModel.locationStateUI.observeAsState(initial = LocationStateUI())
@@ -67,25 +68,29 @@ fun NavGraphBuilder.routeDirection(
         val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
         val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(initial = GyroData())
 
-        val bounds = LatLngBounds.builder()
-            .include(
-                LatLng(
-                    locationStateUI.lat,
-                    locationStateUI.lng
-                )
-            )
-            .include(
-                destinationStateUI.destination
-            ).build()
+        val bounds = locationStateUI.myLoc?.let { it1 ->
+            destinationStateUI.destination?.let { it2 ->
+                LatLngBounds.builder()
+                    .include(
+                        it1
+                    )
+                    .include(
+                        it2
+                    ).build()
+            }
+        }
 
 
         val cameraPositionState = rememberCameraPositionState {
-            position = CameraPosition.fromLatLngZoom(
-                LatLng(
-                    locationStateUI.lat,
-                    locationStateUI.lng
-                ), 15f
-            )
+            position = locationStateUI.myLoc?.let { it1 ->
+                CameraPosition.fromLatLngZoom(
+                    it1, 15f
+                )
+            }?: kotlin.run {
+                CameraPosition.fromLatLngZoom(
+                    LatLng(0.0,0.0), 0f
+                )
+            }
         }
 
         val mapsUiSettings by remember {
@@ -100,13 +105,17 @@ fun NavGraphBuilder.routeDirection(
 
         fun updateUiAndLocation() {
             scope.launch {
-                cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngBounds(
-                        bounds,
+                bounds?.let { it1 ->
+                    CameraUpdateFactory.newLatLngBounds(
+                        it1,
                         100
-                    ),
-                    durationMs = 1000
-                )
+                    )
+                }?.let { it2 ->
+                    cameraPositionState.animate(
+                        update = it2,
+                        durationMs = 1000
+                    )
+                }
             }
         }
 
@@ -120,7 +129,7 @@ fun NavGraphBuilder.routeDirection(
                 textSearch = it
             },
             cameraPositionState = cameraPositionState,
-            myLoc = LatLng(locationStateUI.lat, locationStateUI.lng),
+            myLoc = locationStateUI.myLoc,
             onBackStack = {
                 with(navHostController) {
                     onBack()
@@ -142,11 +151,14 @@ fun NavGraphBuilder.routeDirection(
             rotationMarker = gyroScopeStateUI.azimuth,
             title = destinationStateUI.title,
             address = destinationStateUI.address,
-            estimateDistance = directionStateUI.data.lastOrNull()?.distance ?: "",
-            estimateTime = directionStateUI.data.lastOrNull()?.duration ?: "",
+            estimateDistanceAndTime = directionStateUI.data.lastOrNull()?.estimate ?: "",
             destinationImage = destinationStateUI.image,
             destinationLoading = destinationStateUI.loading,
-            directionLoading = directionStateUI.loading
+            directionLoading = directionStateUI.loading,
+            isDirection = isDirectionState,
+            onDirectionClick = {
+                isDirectionState = !isDirectionState
+            },
         )
     }
 }

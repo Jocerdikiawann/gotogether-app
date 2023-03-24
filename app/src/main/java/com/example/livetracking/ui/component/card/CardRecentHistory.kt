@@ -53,7 +53,7 @@ fun CardRecentHistory(
                 horizontal = 12.dp.from(context),
                 vertical = 10.dp.from(context)
             ),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Start
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally

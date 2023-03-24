@@ -76,7 +76,8 @@ fun PageSearch(
         },
     ) {
         LazyColumn(
-            modifier = modifier.padding(it),
+            modifier = modifier.padding(it).fillMaxWidth(),
+            horizontalAlignment = Alignment.Start,
             content = {
                 val dataWhenLoading = listOf(1, 2, 3, 4, 5)
                 if (!resultList.loading && !resultList.error) {

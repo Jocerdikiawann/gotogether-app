@@ -61,8 +61,12 @@ object Libs {
     }
 
     object Maps {
-        val mapsCompose by lazy { "com.google.maps.android:maps-compose:2.10.0" }
+        val mapsCompose by lazy { "com.google.maps.android:maps-compose:2.11.2" }
+        val mapsKtx by lazy{"com.google.maps.android:maps-ktx:3.2.1"}
+        val utilsKtx by lazy {"com.google.maps.android:maps-utils-ktx:3.2.1"}
         val utils by lazy { "com.google.maps.android:android-maps-utils:3.4.0" }
+        val composeMapsUtils by lazy{"com.google.maps.android:maps-compose-utils:2.11.2"}
+        val composeMapsWidgets by lazy{"com.google.maps.android:maps-compose-widgets:2.11.2"}
         val playServiceMaps by lazy { "com.google.android.gms:play-services-maps:18.1.0" }
         val place by lazy { "com.google.android.libraries.places:places:3.0.0" }
         val placeKtx by lazy { "com.google.maps.android:places-ktx:0.4.0" }

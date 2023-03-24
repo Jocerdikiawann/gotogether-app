@@ -10,6 +10,7 @@ plugins {
 val mapsApiKeys = findProperty("MAPS_API_KEYS")
 val baseUrlGoogle = findProperty("BASE_URL_GOOGLE")
 val baseUrlRoutesApi = findProperty("BASE_URL_ROUTES_API")
+val baseUrlRoadsApi = findProperty("BASE_URL_ROADS")
 val labelApp = findProperty("LABEL_APP")
 
 configurations.all {
@@ -49,6 +50,7 @@ android {
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
+            buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
         }
         debug {
             isMinifyEnabled = false
@@ -61,6 +63,7 @@ android {
             buildConfigField("String", "MAPS_API_KEYS", "\"${mapsApiKeys}\"")
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
+            buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
         }
     }
     compileOptions {
@@ -97,6 +100,8 @@ dependencies {
     implementation(Libs.AndroidX.Compose.util)
     implementation(Libs.Google.gsonConverter)
     implementation(Libs.Maps.utils)
+    implementation(Libs.Maps.utilsKtx)
+    implementation(Libs.Maps.mapsKtx)
     implementation(Libs.AndroidX.multidex)
     implementation(Libs.Google.systemUi)
     implementation(Libs.Google.shimmer)
@@ -121,6 +126,8 @@ dependencies {
     implementation(Libs.AndroidX.Compose.toolingpreview)
     implementation(Libs.AndroidX.Compose.materialTree)
     implementation(Libs.Maps.mapsCompose)
+    implementation(Libs.Maps.composeMapsUtils)
+    implementation(Libs.Maps.composeMapsWidgets)
     implementation(Libs.Maps.place)
     implementation(Libs.Maps.placeKtx)
     implementation(Libs.Maps.playServiceMaps)

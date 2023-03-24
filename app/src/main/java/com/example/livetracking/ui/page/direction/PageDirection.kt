@@ -1,8 +1,12 @@
 package com.example.livetracking.ui.page.direction
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
+import android.os.Bundle
+import android.view.animation.LinearInterpolator
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,11 +22,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.livetracking.R
 import com.example.livetracking.ui.component.bottomsheet.BottomSheetDirection
 import com.example.livetracking.ui.component.bottomsheet.BottomSheetScaffold
@@ -31,13 +44,18 @@ import com.example.livetracking.ui.component.textfield.TextFieldSearch
 import com.example.livetracking.utils.BitmapDescriptor
 import com.example.livetracking.utils.from
 import com.google.android.gms.maps.GoogleMapOptions
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.JointType.ROUND
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.SquareCap
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 
 data class DestinationStateUI(
     val loading: Boolean = false,
@@ -46,7 +64,7 @@ data class DestinationStateUI(
     val title: String = "",
     val address: String = "",
     val image: Bitmap? = null,
-    val destination: LatLng = LatLng(-6.2881792, 106.7614208),
+    val destination: LatLng? = null,
 )
 
 data class DirectionStateUI(
@@ -57,17 +75,18 @@ data class DirectionStateUI(
 )
 
 data class DirectionData(
-    val duration: String = "",
-    val distance: String = "",
+    val estimate: String = "",
     val route: List<LatLng> = listOf()
 )
 
 data class LocationStateUI(
-    val lat: Double = -6.2881792,
-    val lng: Double = 106.7614208,
+    val myLoc: LatLng? = null,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+    MapsComposeExperimentalApi::class
+)
 @Composable
 fun PageDirection(
     modifier: Modifier = Modifier,
@@ -77,16 +96,17 @@ fun PageDirection(
     interactionSource: MutableInteractionSource,
     onValueChange: (String) -> Unit,
     onBackStack: () -> Unit,
-    myLoc: LatLng,
-    destination: LatLng,
+    myLoc: LatLng?,
+    destination: LatLng?,
     route: List<LatLng>,
     title: String,
     address: String,
-    estimateTime: String,
-    estimateDistance: String,
+    estimateDistanceAndTime: String,
     destinationImage: Bitmap?,
     destinationLoading: Boolean,
     directionLoading: Boolean,
+    isDirection: Boolean,
+    onDirectionClick: () -> Unit,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
     mapsUiSettings: MapUiSettings,
@@ -95,17 +115,20 @@ fun PageDirection(
     sheetState: BottomSheetScaffoldState,
     onMyLocationButtonClick: (Location) -> Unit
 ) {
+    var marker by remember { mutableStateOf<Marker?>(value = null) }
+
     BottomSheetScaffold(
         sheetContent = {
             BottomSheetDirection(
                 context = context,
-                estimateTime = estimateTime,
-                estimateDistance = estimateDistance,
+                estimateDistanceAndTime = estimateDistanceAndTime,
                 address = address,
                 title = title,
                 imageUrl = destinationImage,
                 directionLoading = directionLoading,
                 destinationLoading = destinationLoading,
+                isDirection = isDirection,
+                onDirectionClick = onDirectionClick,
             )
         },
         scaffoldState = sheetState,
@@ -124,26 +147,79 @@ fun PageDirection(
                     .fillMaxSize()
                     .align(Alignment.Center),
                 cameraPositionState = cameraPositionState,
-                googleMapOptionsFactory = { googleMapOptions() },
+                googleMapOptionsFactory = {
+                    googleMapOptions()
+                },
                 onMapLoaded = { onMapLoaded() },
                 uiSettings = mapsUiSettings,
                 onMyLocationClick = {
                     onMyLocationButtonClick(it)
-                }
+                },
             ) {
-                Marker(
-                    state = MarkerState(destination),
-                    title = "Destination Location Here",
-                    snippet = "marker in destination location",
-                )
-                Marker(
-                    icon = BitmapDescriptor(context, R.drawable.ic_directions),
-                    state = MarkerState(myLoc),
-                    title = "Your Location Here",
-                    snippet = "marker in your location",
-                    rotation = rotationMarker,
-                )
-                Polyline(points = route)
+                MapEffect(key1 = route.isNotEmpty()) { map ->
+                    myLoc?.let {
+                        marker = map.addMarker(
+                            MarkerOptions().position(myLoc).title("Your Loc").icon(
+                                BitmapDescriptor(context, R.drawable.ic_directions)
+                            )
+                        )
+                    }
+                    destination?.let {
+                        map.addMarker(
+                            MarkerOptions().position(destination).title("Your Destination")
+                        )
+                    }
+                    val grayPolyline = map.addPolyline(
+                        PolylineOptions()
+                            .color(android.graphics.Color.GRAY)
+                            .startCap(SquareCap())
+                            .endCap(SquareCap())
+                            .jointType(ROUND)
+                            .addAll(route)
+                    )
+
+                    val primaryPolyLine = map.addPolyline(
+                        PolylineOptions()
+                            .color(R.color.primary)
+                            .startCap(SquareCap())
+                            .endCap(SquareCap())
+                            .jointType(ROUND)
+                    )
+
+                    val polylineAnimator = ValueAnimator.ofInt(0, 100)
+                    polylineAnimator.duration = 2000
+                    polylineAnimator.interpolator = LinearInterpolator()
+                    polylineAnimator.addUpdateListener {
+                        val points = grayPolyline.points
+                        val percentValue = it.animatedValue as Int
+                        val size = points.size
+                        val newPoints = (size * (percentValue / 100.0f)).toInt()
+                        val p = points.subList(0, newPoints)
+                        primaryPolyLine.points = p
+                    }
+                    polylineAnimator.start()
+                }
+                MapEffect(key1 = myLoc) {
+                    myLoc?.let {
+                        val valueAnimator = ValueAnimator.ofFloat(0F, 1F)
+                        valueAnimator.duration = 3000
+                        valueAnimator.interpolator = LinearInterpolator()
+                        valueAnimator.addUpdateListener { anime ->
+                            val v = anime.animatedFraction
+                            val prevPosition = marker?.position
+                            prevPosition?.let {
+                                val newLng = (1 - v) * it.longitude + v * myLoc.longitude
+                                val newLat = (1 - v) * it.latitude + v * myLoc.latitude
+                                marker?.position = LatLng(newLat, newLng)
+                                marker?.setAnchor(0.5f, 0.5f)
+                            }
+                        }
+                        valueAnimator.start()
+                    }
+                }
+                MapEffect(key1 = rotationMarker, block = {
+                    marker?.rotation = rotationMarker
+                })
             }
             Box(
                 modifier = modifier
@@ -173,6 +249,42 @@ fun PageDirection(
                         }
                     })
             }
+        }
+    }
+}
+
+@Composable
+fun rememberMapViewLifecycle(): MapView {
+    val context = LocalContext.current
+
+    val mapView = remember {
+        MapView(context).apply {
+            id = R.id.map
+        }
+    }
+
+    val lifeCycleObserver = rememberMapLifecycleObserver(mapView)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    DisposableEffect(lifecycle) {
+        lifecycle.addObserver(lifeCycleObserver)
+        onDispose { lifecycle.removeObserver(lifeCycleObserver) }
+    }
+
+    return mapView
+}
+
+@Composable
+fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver = remember(mapView) {
+    LifecycleEventObserver { _, event ->
+        when (event) {
+            Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
+            Lifecycle.Event.ON_START -> mapView.onStart()
+            Lifecycle.Event.ON_RESUME -> mapView.onResume()
+            Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+            Lifecycle.Event.ON_STOP -> mapView.onStop()
+            Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+            else -> throw IllegalStateException()
         }
     }
 }

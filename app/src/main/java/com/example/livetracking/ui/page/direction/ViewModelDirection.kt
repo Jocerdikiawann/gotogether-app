@@ -1,6 +1,7 @@
 package com.example.livetracking.ui.page.direction
 
 import android.content.Context
+import android.location.Location
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
@@ -8,13 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.GyroData
-import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.domain.utils.RouteTravelModes
 import com.example.livetracking.repository.design.GoogleRepository
 import com.example.livetracking.utils.GyroscopeUtils
 import com.example.livetracking.utils.LocationUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
+import com.google.maps.android.SphericalUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.collect
@@ -29,7 +30,7 @@ class ViewModelDirection @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
     private val destinationArgs = Direction.DirectionArgs(savedStateHandle)
-    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 0)
+    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 1)
     private val gyroscopeUtils = GyroscopeUtils(context)
 
     private var _destinationStateUI = MutableLiveData<DestinationStateUI>(DestinationStateUI())
@@ -47,9 +48,9 @@ class ViewModelDirection @Inject constructor(
     private var _gpsIsOn = MutableLiveData<Boolean?>(null)
     val gpsIsOn get() = _gpsIsOn
 
-    private val locationObserver = Observer<LocationData> {
+    private val locationObserver = Observer<Location> { currentLocation ->
         _locationStateUI.postValue(
-            LocationStateUI(it.lat, it.lng)
+            LocationStateUI(LatLng(currentLocation.latitude, currentLocation.longitude))
         )
     }
 
@@ -64,9 +65,9 @@ class ViewModelDirection @Inject constructor(
     }
 
     init {
+        getDetailPlace()
         locationUtils.observeForever(locationObserver)
         gyroscopeUtils.observeForever(gyroscopeObserver)
-        getDetailPlace()
     }
 
     override fun onCleared() {
@@ -77,10 +78,7 @@ class ViewModelDirection @Inject constructor(
     private fun getDirectionRoutes(destination: LatLng) =
         viewModelScope.launch {
             googleRepository.getRoutesDirection(
-                origin = LatLng(
-                    locationStateUI.value?.lat ?: 0.0,
-                    locationStateUI.value?.lng ?: 0.0
-                ),
+                origin = locationStateUI.value?.myLoc ?: LatLng(0.0,0.0),
                 destination = destination,
                 travelModes = RouteTravelModes.TWO_WHEELER,
             ).onEach {
@@ -90,26 +88,27 @@ class ViewModelDirection @Inject constructor(
                             DirectionStateUI(
                                 data = it.data.routes?.map { route ->
                                     val time = route.duration.replace("s", "").toIntOrNull()
+                                    val duration = when {
+                                        time == null -> {
+                                            "0 Sec"
+                                        }
+                                        (time >= 3600) -> {
+                                            "${time / 3600} Hour ${(time % 3600) / 60} Min"
+                                        }
+                                        time >= 60 -> {
+                                            "${time / 60} Min ${(time % 60)} Sec"
+                                        }
+                                        else -> {
+                                            "$time Sec"
+                                        }
+                                    }
+                                    val distance = if (route.distanceMeters >= 1000)
+                                        "${route.distanceMeters / 1000} KM"
+                                    else
+                                        "${route.distanceMeters} M"
                                     DirectionData(
-                                        duration = when {
-                                            time == null -> {
-                                                "0 Sec"
-                                            }
-                                            (time >= 3600) -> {
-                                                "${time / 3600} Hour ${(time % 3600) / 60} Min"
-                                            }
-                                            time >= 60 -> {
-                                                "${time / 60} Min ${(time % 60)} Sec"
-                                            }
-                                            else -> {
-                                                "$time Sec"
-                                            }
-                                        },
+                                        estimate = "$distance - $duration",
                                         route = PolyUtil.decode(route.polyline.encodedPolyline),
-                                        distance = if (route.distanceMeters >= 1000)
-                                            "${route.distanceMeters / 1000} KM"
-                                        else
-                                            "${route.distanceMeters} M",
                                     )
                                 } ?: listOf()
                             )

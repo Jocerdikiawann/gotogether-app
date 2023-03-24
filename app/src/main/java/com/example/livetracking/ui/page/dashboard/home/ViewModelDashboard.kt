@@ -3,6 +3,7 @@ package com.example.livetracking.ui.page.dashboard.home
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -45,9 +46,9 @@ class ViewModelDashboard @Inject constructor(
     private val locationUtils = LocationUtils(context)
     private val gyroscopeUtils = GyroscopeUtils(context)
 
-    private val locationObserver = Observer<LocationData> {
+    private val locationObserver = Observer<Location> {
         _dashboardStateUI.postValue(
-            DashboardStateUI(lat = it.lat, lng = it.lng)
+            DashboardStateUI(lat = it.latitude, lng = it.longitude)
         )
     }
 

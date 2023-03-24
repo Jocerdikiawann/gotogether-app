@@ -130,6 +130,7 @@ fun NavGraphBuilder.routeDashboard(
                 ctx = ctx,
                 onMapReady = { isReady ->
                     mapsReady = isReady
+                    updateUiAndLocation()
                 },
                 onClickSearchField = {
                     onNavigateToSearchLocation(
