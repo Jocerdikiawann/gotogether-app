@@ -4,10 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
-import android.os.Bundle
-import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,11 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.example.livetracking.R
 import com.example.livetracking.ui.component.bottomsheet.BottomSheetDirection
 import com.example.livetracking.ui.component.bottomsheet.BottomSheetScaffold
@@ -44,12 +36,13 @@ import com.example.livetracking.ui.component.bottomsheet.BottomSheetScaffoldStat
 import com.example.livetracking.ui.component.textfield.TextFieldSearch
 import com.example.livetracking.utils.BitmapDescriptor
 import com.example.livetracking.utils.from
+import com.example.livetracking.utils.updateRoutePolyline
 import com.google.android.gms.maps.GoogleMapOptions
-import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.JointType.ROUND
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.model.SquareCap
 import com.google.maps.android.compose.CameraPositionState
@@ -118,6 +111,7 @@ fun PageDirection(
     onMyLocationButtonClick: (Location) -> Unit
 ) {
     var marker by remember { mutableStateOf<Marker?>(value = null) }
+    var primaryPolyLine by remember { mutableStateOf<Polyline?>(null) }
 
     BottomSheetScaffold(
         sheetContent = {
@@ -166,11 +160,13 @@ fun PageDirection(
                             )
                         )
                     }
+
                     destination?.let {
                         map.addMarker(
                             MarkerOptions().position(destination).title("Your Destination")
                         )
                     }
+
                     val grayPolyline = map.addPolyline(
                         PolylineOptions()
                             .color(android.graphics.Color.TRANSPARENT)
@@ -180,7 +176,7 @@ fun PageDirection(
                             .addAll(route)
                     )
 
-                    val primaryPolyLine = map.addPolyline(
+                    primaryPolyLine = map.addPolyline(
                         PolylineOptions()
                             .color(R.color.primary)
                             .startCap(SquareCap())
@@ -197,19 +193,23 @@ fun PageDirection(
                         val size = points.size
                         val newPoints = (size * (percentValue / 100.0f)).toInt()
                         val p = points.subList(0, newPoints)
-                        primaryPolyLine.points = p
+                        primaryPolyLine?.points = p
                     }
                     polylineAnimator.start()
                 }
                 MapEffect(key1 = myLoc) {
                     myLoc?.let {
                         marker?.let {
-                            AnimationUtil.animateMarkerTo(marker,myLoc)
+                            updateRoutePolyline(route,marker,primaryPolyLine)
+                            AnimationUtil.animateMarkerTo(marker, myLoc)
                         }
                     }
                 }
                 MapEffect(key1 = rotationMarker, block = {
-                    marker?.rotation = rotationMarker
+                    marker?.rotation = if(isDirection) 0F else rotationMarker
+                })
+                MapEffect(key1 = cameraPositionState.position.zoom, block = {
+                    primaryPolyLine?.width = it.cameraPosition.zoom
                 })
             }
             Box(

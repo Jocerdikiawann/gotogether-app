@@ -15,7 +15,6 @@ import com.example.livetracking.utils.GyroscopeUtils
 import com.example.livetracking.utils.LocationUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
-import com.google.maps.android.SphericalUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.collect
@@ -30,7 +29,7 @@ class ViewModelDirection @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
     private val destinationArgs = Direction.DirectionArgs(savedStateHandle)
-    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 1)
+    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 50)
     private val gyroscopeUtils = GyroscopeUtils(context)
 
     private var _destinationStateUI = MutableLiveData<DestinationStateUI>(DestinationStateUI())
@@ -73,12 +72,13 @@ class ViewModelDirection @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         locationUtils.removeObserver(locationObserver)
+        locationUtils.stopUpdateLocation()
     }
 
     private fun getDirectionRoutes(destination: LatLng) =
         viewModelScope.launch {
             googleRepository.getRoutesDirection(
-                origin = locationStateUI.value?.myLoc ?: LatLng(0.0,0.0),
+                origin = locationStateUI.value?.myLoc ?: LatLng(0.0, 0.0),
                 destination = destination,
                 travelModes = RouteTravelModes.TWO_WHEELER,
             ).onEach {

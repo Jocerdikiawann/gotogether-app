@@ -86,10 +86,13 @@ fun NavGraphBuilder.routeSearch(
                     popBackStack()
                 }
             },
-            onNavigateToDirection = {
+            onNavigateToDirection = { name, address, distance, placeId ->
                 with(navHostController) {
-                    navigateToDirection(it)
+                    navigateToDirection(placeId)
                 }
+                viewModel.saveHistoryPlace(
+                    name, address, distance, placeId
+                )
             },
             resultList = searchStateUI
         )

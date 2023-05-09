@@ -1,6 +1,7 @@
 package com.example.livetracking.ui.page.direction
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -86,9 +87,9 @@ fun NavGraphBuilder.routeDirection(
                 CameraPosition.fromLatLngZoom(
                     it1, 15f
                 )
-            }?: kotlin.run {
+            } ?: kotlin.run {
                 CameraPosition.fromLatLngZoom(
-                    LatLng(0.0,0.0), 0f
+                    LatLng(0.0, 0.0), 0f
                 )
             }
         }
@@ -118,6 +119,27 @@ fun NavGraphBuilder.routeDirection(
                 }
             }
         }
+
+        fun updateDirectionCamera() {
+            scope.launch {
+                locationStateUI.myLoc?.let {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newCameraPosition(
+                            CameraPosition(
+                                it, 25f, 50f, gyroScopeStateUI.azimuth
+                            ),
+                        ),
+                        durationMs = 100
+                    )
+                }
+            }
+        }
+
+        LaunchedEffect(key1 = locationStateUI, key2 = gyroScopeStateUI.azimuth, block = {
+            if (isDirectionState) {
+                updateDirectionCamera()
+            }
+        })
 
         PageDirection(
             context = context,
@@ -158,7 +180,7 @@ fun NavGraphBuilder.routeDirection(
             isDirection = isDirectionState,
             onDirectionClick = {
                 isDirectionState = !isDirectionState
-            },
+            }
         )
     }
 }

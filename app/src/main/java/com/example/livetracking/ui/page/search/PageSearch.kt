@@ -2,7 +2,6 @@ package com.example.livetracking.ui.page.search
 
 import android.content.Context
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +21,7 @@ import com.example.livetracking.ui.component.card.CardRecentHistoryShimmer
 import com.example.livetracking.ui.component.textfield.TextFieldSearch
 import com.example.livetracking.ui.component.topbar.BaseTopBar
 import com.example.livetracking.utils.from
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 
 data class SearchStateUI(
@@ -37,7 +37,8 @@ data class SearchResultState(
     val secondaryText: String = "",
     val placeId: String = "",
     val placeTypes: List<Place.Type> = listOf(),
-    val distanceMeters: String = ""
+    val distanceMeters: String = "",
+    val isHistory:Boolean= false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +51,12 @@ fun PageSearch(
     onValueChange: (String) -> Unit,
     focusRequester: FocusRequester,
     interactionSource: MutableInteractionSource,
-    onNavigateToDirection: (String) -> Unit,
+    onNavigateToDirection: (
+        namePlace: String,
+        address: String,
+        distance: String,
+        placeId: String,
+    ) -> Unit,
     onBackStack: () -> Unit,
 ) {
     Scaffold(
@@ -76,7 +82,9 @@ fun PageSearch(
         },
     ) {
         LazyColumn(
-            modifier = modifier.padding(it).fillMaxWidth(),
+            modifier = modifier
+                .padding(it)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.Start,
             content = {
                 val dataWhenLoading = listOf(1, 2, 3, 4, 5)
@@ -85,11 +93,12 @@ fun PageSearch(
                         CardRecentHistory(
                             context = context,
                             onClickAction = {
-                                onNavigateToDirection(result.placeId)
+                                onNavigateToDirection(result.primaryText,result.fullAddress,result.distanceMeters,result.placeId)
                             },
                             fullAddress = result.fullAddress,
                             title = result.primaryText,
-                            distance = result.distanceMeters
+                            distance = result.distanceMeters,
+                            isHistory = result.isHistory
                         )
                         if (index != resultList.data.lastIndex) Divider(
                             modifier = modifier.padding(

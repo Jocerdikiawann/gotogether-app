@@ -72,6 +72,7 @@ class ViewModelDashboard @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         locationUtils.removeObserver(locationObserver)
+        locationUtils.stopUpdateLocation()
     }
 
     fun turnOnGps(resultLauncher: ActivityResultLauncher<IntentSenderRequest>) {

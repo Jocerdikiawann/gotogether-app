@@ -28,7 +28,7 @@ object DataModule {
 
     @Provides
     internal fun providesRoutesDataSource(): RoutesDataSource = AppData.routesDataSource(
-        BuildConfig.MAPS_API_KEYS , BuildConfig.BASE_URL_ROUTES_API
+        BuildConfig.MAPS_API_KEYS, BuildConfig.BASE_URL_ROUTES_API
     )
 
     @Provides
@@ -46,12 +46,13 @@ object DataModule {
     internal fun provideGoogleRepository(
         dispatcherProvider: DispatcherProvider,
         googleDataSource: GoogleDataSource,
-        routeDataSource:RoutesDataSource,
+        routeDataSource: RoutesDataSource,
+        placeDao: PlaceDao,
         @ApplicationContext context: Context,
     ): GoogleRepository {
         val client = Places.createClient(context)
         return GoogleRepositoryImpl(
-            dispatcherProvider, googleDataSource,routeDataSource, client
+            dispatcherProvider, googleDataSource, routeDataSource, placeDao, client
         )
     }
 }

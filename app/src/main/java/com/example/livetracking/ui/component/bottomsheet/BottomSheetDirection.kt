@@ -2,6 +2,7 @@ package com.example.livetracking.ui.component.bottomsheet
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,17 +30,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.livetracking.R
+import com.example.livetracking.ui.theme.Primary
+import com.example.livetracking.ui.theme.Secondary
 import com.example.livetracking.utils.from
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.placeholder
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BottomSheetDirection(
     modifier: Modifier = Modifier,
@@ -48,7 +53,7 @@ fun BottomSheetDirection(
     imageUrl: Bitmap?,
     title: String,
     address: String,
-    estimateDistanceAndTime:String,
+    estimateDistanceAndTime: String,
     context: Context,
     isDirection: Boolean,
     onDirectionClick: () -> Unit
@@ -116,7 +121,7 @@ fun BottomSheetDirection(
                                     color = Color.Gray,
                                 )
                         )
-                         Spacer(modifier.height(5.dp.from(context)))
+                        Spacer(modifier.height(5.dp.from(context)))
                         Text(
                             text = address,
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -151,22 +156,46 @@ fun BottomSheetDirection(
                                 )
                         )
                         Spacer(modifier.height(5.dp.from(context)))
-                        OutlinedButton(
-                            onClick = onDirectionClick,
+                        Row(
                             modifier = modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.White
-                            ),
-                            border = BorderStroke(1.dp, Color.Gray),
-                            shape = RoundedCornerShape(8.dp.from(context))
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = if (isDirection) "Stop" else "Direction",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 12.sp.from(context),
-                                    fontWeight = FontWeight.Normal,
+                            OutlinedButton(
+                                onClick = onDirectionClick,
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.White,
+                                    contentColor = if (isDirection) Secondary else Primary
+                                ),
+                                border = BorderStroke(1.dp, Color.Gray),
+                                shape = RoundedCornerShape(8.dp.from(context))
+                            ) {
+                                Text(
+                                    text = if (isDirection) "Stop" else "Direction",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 12.sp.from(context),
+                                        fontWeight = FontWeight.Normal,
+                                    )
                                 )
-                            )
+                            }
+                            Spacer(modifier = modifier.width(10.dp.from(context)))
+                            OutlinedButton(
+                                onClick = { },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.White,
+                                ),
+                                border = BorderStroke(1.dp, Color.Gray),
+                                shape = RoundedCornerShape(8.dp.from(context)),
+                                enabled = isDirection
+                            ) {
+                                Text(
+                                    text = "Share",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 12.sp.from(context),
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -177,4 +206,16 @@ fun BottomSheetDirection(
 @Composable
 @Preview
 fun PreviewBottomSheetDirection() {
+    BottomSheetDirection(
+        destinationLoading = false,
+        directionLoading = false,
+        imageUrl = null,
+        title = "Tes",
+        address = "Tes Address",
+        estimateDistanceAndTime = "2KM",
+        context = LocalContext.current,
+        isDirection = false
+    ) {
+
+    }
 }

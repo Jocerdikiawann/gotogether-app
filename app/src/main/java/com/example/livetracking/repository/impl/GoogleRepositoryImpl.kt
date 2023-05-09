@@ -2,9 +2,11 @@ package com.example.livetracking.repository.impl
 
 import android.util.Log
 import com.example.livetracking.data.coroutines.DispatcherProvider
+import com.example.livetracking.data.local.room.PlaceDao
 import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.data.utils.DataState
+import com.example.livetracking.domain.entity.PlaceEntity
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.domain.model.PlaceData
 import com.example.livetracking.domain.model.request.Destination
@@ -47,6 +49,7 @@ class GoogleRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider,
     private val googleDataSource: GoogleDataSource,
     private val routesDataSource: RoutesDataSource,
+    private val placeDao: PlaceDao,
     private val placesClient: PlacesClient,
 ) : GoogleRepository {
     override suspend fun getDirection(
@@ -186,7 +189,7 @@ class GoogleRepositoryImpl(
                     listOf(
                         Place.Field.ID, Place.Field.NAME,
                         Place.Field.LAT_LNG, Place.Field.ADDRESS,
-                        Place.Field.ICON_URL,Place.Field.PHOTO_METADATAS
+                        Place.Field.ICON_URL, Place.Field.PHOTO_METADATAS
                     ),
                 )
             try {
@@ -207,4 +210,26 @@ class GoogleRepositoryImpl(
                 }
             }
         }
+
+    override suspend fun savePlace(
+        placeEntity: PlaceEntity
+    ): Flow<Boolean> = flow {
+        if (placeDao.insert(
+                placeEntity
+            ) > 0
+        ) {
+            emit(true)
+        }
+        emit(false)
+    }.flowOn(dispatcherProvider.io())
+
+    override suspend fun getHistoriesPlace(): Flow<DataState<List<PlaceEntity>>> =
+        flow<DataState<List<PlaceEntity>>> {
+            emit(DataState.onLoading)
+            try {
+                emit(DataState.onData(placeDao.getAllHistory()))
+            } catch (e: Exception) {
+                emit(DataState.onFailure(e.message ?: ""))
+            }
+        }.flowOn(dispatcherProvider.io())
 }

@@ -41,6 +41,7 @@ fun CardRecentHistory(
     fullAddress: String,
     distance:String,
     context: Context,
+    isHistory:Boolean,
     onClickAction: () -> Unit,
 ) {
     Row(
@@ -67,7 +68,7 @@ fun CardRecentHistory(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_history),
+                    painter = painterResource(id = if(isHistory) R.drawable.ic_history else R.drawable.baseline_location_on_24),
                     contentDescription = "ic_marker_history",
                 )
             }

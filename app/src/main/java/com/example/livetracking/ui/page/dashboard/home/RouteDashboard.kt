@@ -94,7 +94,7 @@ fun NavGraphBuilder.routeDashboard(
                             ), 15f, 0f, 0f
                         ),
                     ),
-                    durationMs = 500
+                    durationMs = 1000
                 )
             }
         }

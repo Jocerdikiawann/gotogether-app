@@ -5,9 +5,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
+import com.example.livetracking.domain.entity.PlaceEntity
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.domain.model.fromJson
 import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.utils.getTodayTimeStamp
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
@@ -26,7 +29,7 @@ class ViewModelSearch @Inject constructor(
     val searchResultStateUI get() = _searchResultStateUI
 
     init {
-
+        getHistoriesPlace()
     }
 
     internal fun getCompleteLocation(queries: String) = viewModelScope.launch {
@@ -51,6 +54,56 @@ class ViewModelSearch @Inject constructor(
                                     placeTypes = prediction.placeTypes,
                                     primaryText = prediction.getPrimaryText(null).toString(),
                                     secondaryText = prediction.getSecondaryText(null).toString(),
+                                )
+                            }
+                        )
+                    }
+                    is DataState.onFailure -> {
+                        SearchStateUI(
+                            error = true,
+                            errMsg = it.error_message
+                        )
+                    }
+                    DataState.onLoading -> {
+                        SearchStateUI(
+                            loading = true
+                        )
+                    }
+                }
+            )
+        }.collect()
+    }
+
+    internal fun saveHistoryPlace(
+        namePlace: String,
+        address: String,
+        distance: String,
+        placeId: String,
+    ) = viewModelScope.launch {
+        googleRepository.savePlace(
+           PlaceEntity(
+               namePlace=namePlace,
+               address = address,
+               distance = distance,
+               placeId = placeId,
+               createdAt = getTodayTimeStamp()
+           )
+        ).collect()
+    }
+
+    private fun getHistoriesPlace() = viewModelScope.launch {
+        googleRepository.getHistoriesPlace().onEach {
+            _searchResultStateUI.postValue(
+                when (it) {
+                    is DataState.onData -> {
+                        SearchStateUI(
+                            data = it.data.map { data ->
+                                SearchResultState(
+                                    distanceMeters = data.distance,
+                                    fullAddress = data.address,
+                                    primaryText = data.namePlace,
+                                    placeId = data.placeId,
+                                    isHistory = true
                                 )
                             }
                         )
