@@ -9,7 +9,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-suspend fun <T> safeApiCall(a: Boolean = false, call: suspend () -> Response<T>): DataState<T> {
+suspend fun <T> safeApiCall(call: suspend () -> Response<T>): DataState<T> {
 
     try {
         val response = call.invoke()

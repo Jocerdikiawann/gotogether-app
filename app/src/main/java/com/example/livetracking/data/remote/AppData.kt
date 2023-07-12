@@ -9,6 +9,11 @@ import com.example.livetracking.data.remote.impl.GoogleDataSourceImpl
 import com.example.livetracking.data.remote.impl.RoutesDataSourceImpl
 import com.example.livetracking.data.remote.services.GoogleApiServices
 import com.example.livetracking.data.remote.services.RoutesApiServices
+import io.grpc.Channel
+import io.grpc.ManagedChannel
+import io.grpc.ManagedChannelBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -81,5 +86,11 @@ class AppData {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         ).fallbackToDestructiveMigration().build()
+
+        fun initChannel(
+            baseUrl: String,
+            port: Int
+        ): ManagedChannel = ManagedChannelBuilder.forAddress(baseUrl, port).usePlaintext()
+            .executor(Dispatchers.IO.asExecutor()).build()
     }
 }

@@ -5,12 +5,14 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("kotlin-parcelize")
+    id("com.google.protobuf")
 }
 
 val mapsApiKeys = findProperty("MAPS_API_KEYS")
 val baseUrlGoogle = findProperty("BASE_URL_GOOGLE")
 val baseUrlRoutesApi = findProperty("BASE_URL_ROUTES_API")
 val baseUrlRoadsApi = findProperty("BASE_URL_ROADS")
+val clientId = findProperty("GOOGLE_CLIENT_ID")
 val labelApp = findProperty("LABEL_APP")
 
 configurations.all {
@@ -51,6 +53,7 @@ android {
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
             buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$clientId\"")
         }
         debug {
             isMinifyEnabled = false
@@ -64,6 +67,7 @@ android {
             buildConfigField("String", "BASE_URL_GOOGLE", "\"$baseUrlGoogle\"")
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
             buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
+            buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$clientId\"")
         }
     }
     compileOptions {
@@ -92,13 +96,56 @@ kapt {
     correctErrorTypes = true
 }
 
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${rootProject.ext["protobufVersion"]}"
+    }
+    plugins {
+        create("java") {
+            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext["grpcVersion"]}"
+        }
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext["grpcVersion"]}"
+        }
+        create("grpckt") {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:${rootProject.ext["grpcKotlinVersion"]}:jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.plugins {
+                create("java") {
+                    option("lite")
+                }
+                create("grpc") {
+                    option("lite")
+                }
+                create("grpckt") {
+                    option("lite")
+                }
+            }
+            it.builtins {
+                create("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
+}
+
 dependencies {
+    runtimeOnly(Libs.Io.grpcOkHttp)
+    api(Libs.Io.grpcStub)
+    api(Libs.Io.protobuf)
+    api(Libs.Io.kotlinStub)
+    api(Libs.Io.protobufKotlin)
     implementation(Libs.Joda.time)
     implementation(platform(Libs.SquareUp.okhttpBOM))
     implementation(Libs.SquareUp.okhttp)
     implementation(Libs.SquareUp.logging)
     implementation(Libs.AndroidX.Compose.util)
     implementation(Libs.Google.gsonConverter)
+    implementation(Libs.Google.auth)
     implementation(Libs.Maps.utils)
     implementation(Libs.Maps.utilsKtx)
     implementation(Libs.Maps.mapsKtx)

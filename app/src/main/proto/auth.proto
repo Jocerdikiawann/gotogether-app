@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package = "github.com/Jocerdikiawann/server_share_trip/pb";
+option java_package = "com.example.livetracking";//change package according to your project package or need
+option java_outer_classname = "AuthProto";
+
+service Auth {
+  rpc SignUp(UserRequest) returns (UserResponse) {}
+}
+
+message UserRequest {
+  string googleId = 1;
+  string email = 2;
+  string name = 3;
+}
+
+message UserResponse {
+  int32 statusCode = 1;
+  bool success=2;
+  string message=3;
+  optional UserType data = 4;
+  optional string token = 5;
+}
+
+message UserType {
+  string id = 1;
+  string googleId = 2;
+  string email = 3;
+  string name = 4;
+}

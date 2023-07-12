@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.example.livetracking.ui.page.auth.routeAuth
 import com.example.livetracking.ui.page.dashboard.main.dashboardGraph
 import com.example.livetracking.ui.page.direction.routeDirection
 import com.example.livetracking.ui.page.search.routeSearch
@@ -22,5 +23,6 @@ fun AppNavigation(
         dashboardGraph(nav)
         routeSearch(nav)
         routeDirection(nav)
+        routeAuth(nav)
     }
 }

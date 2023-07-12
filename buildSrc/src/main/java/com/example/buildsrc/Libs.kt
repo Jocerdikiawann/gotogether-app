@@ -3,6 +3,16 @@ import org.gradle.kotlin.dsl.provideDelegate
 object Libs {
     private const val composeVersion = "1.3.3"
     private const val roomVersion = "2.5.0"
+    private const val grpcVersion = "1.56.1"
+    private const val kotlinStubVersion = "1.3.0"
+
+    object Io {
+        val grpcOkHttp by lazy {"io.grpc:grpc-okhttp:${grpcVersion}"}
+        val protobuf by lazy {"io.grpc:grpc-protobuf-lite:${grpcVersion}"}
+        val protobufKotlin by lazy {"com.google.protobuf:protobuf-kotlin-lite:3.23.4"}
+        val kotlinStub by lazy {"io.grpc:grpc-kotlin-stub:${kotlinStubVersion}"}
+        val grpcStub by lazy {"io.grpc:grpc-stub:${grpcVersion}"}
+    }
 
     object AndroidX {
         val androidxCore by lazy { "androidx.core:core-ktx:1.7.0" }
@@ -50,6 +60,7 @@ object Libs {
         val systemUi by lazy { "com.google.accompanist:accompanist-systemuicontroller:0.29.1-alpha" }
         val shimmer by lazy { "com.google.accompanist:accompanist-placeholder-material:0.29.1-alpha" }
         val location by lazy { "com.google.android.gms:play-services-location:21.0.1" }
+        val auth by lazy {"com.google.android.gms:play-services-auth:20.6.0"}
     }
 
     object Coil {
