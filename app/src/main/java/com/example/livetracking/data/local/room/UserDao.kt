@@ -22,7 +22,7 @@ interface UserDao {
 @Dao
 interface TokenDao {
     @Query("SELECT * FROM tb_token WHERE id = 1")
-    suspend fun getToken(): TokenEntity
+    suspend fun getToken(): TokenEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(token: TokenEntity)

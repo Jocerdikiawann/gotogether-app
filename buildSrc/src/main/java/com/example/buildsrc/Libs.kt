@@ -1,10 +1,11 @@
 import org.gradle.kotlin.dsl.provideDelegate
 
 object Libs {
-    private const val composeVersion = "1.3.3"
+    private const val composeVersion = "1.4.3"
     private const val roomVersion = "2.5.0"
     private const val grpcVersion = "1.56.1"
     private const val kotlinStubVersion = "1.3.0"
+    private const val lifeCycleVersion = "2.6.1"
 
     object Io {
         val grpcOkHttp by lazy {"io.grpc:grpc-okhttp:${grpcVersion}"}
@@ -15,9 +16,10 @@ object Libs {
     }
 
     object AndroidX {
-        val androidxCore by lazy { "androidx.core:core-ktx:1.7.0" }
-        val androidXLifeCycleRuntime by lazy { "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1" }
-        val navigation by lazy { "androidx.navigation:navigation-compose:2.5.3" }
+        val androidxCore by lazy { "androidx.core:core-ktx:1.10.1" }
+        val androidXLifeCycleRuntime by lazy { "androidx.lifecycle:lifecycle-runtime-ktx:$lifeCycleVersion" }
+        val lifecycleComposeRuntime by lazy {"androidx.lifecycle:lifecycle-runtime-compose:$lifeCycleVersion"}
+        val navigation by lazy { "androidx.navigation:navigation-compose:2.6.0" }
         val multidex by lazy { "androidx.multidex:multidex:2.0.1" }
 
         object Compose {
@@ -72,7 +74,7 @@ object Libs {
     }
 
     object Maps {
-        val mapsCompose by lazy { "com.google.maps.android:maps-compose:2.11.2" }
+        val mapsCompose by lazy { "com.google.maps.android:maps-compose:2.11.4" }
         val mapsKtx by lazy{"com.google.maps.android:maps-ktx:3.2.1"}
         val utilsKtx by lazy {"com.google.maps.android:maps-utils-ktx:3.2.1"}
         val utils by lazy { "com.google.maps.android:android-maps-utils:3.4.0" }

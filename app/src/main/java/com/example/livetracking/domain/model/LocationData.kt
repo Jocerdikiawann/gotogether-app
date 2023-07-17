@@ -4,8 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 data class LocationData(
-    val lat: Double,
-    val lng: Double,
+    val lat: Double=0.0,
+    val lng: Double=0.0,
 )
 
 inline fun <reified T> Gson.fromJson(json: String) =

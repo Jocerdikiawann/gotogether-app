@@ -102,6 +102,7 @@ fun PageDirection(
     directionLoading: Boolean,
     isDirection: Boolean,
     onDirectionClick: () -> Unit,
+    onShareLocation:()->Unit,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
     mapsUiSettings: MapUiSettings,
@@ -125,6 +126,7 @@ fun PageDirection(
                 destinationLoading = destinationLoading,
                 isDirection = isDirection,
                 onDirectionClick = onDirectionClick,
+                onShareLocation = onShareLocation,
             )
         },
         scaffoldState = sheetState,

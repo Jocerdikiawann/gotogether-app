@@ -160,6 +160,7 @@ dependencies {
     kapt(Libs.AndroidX.Room.roomCompiler)
     implementation(Libs.AndroidX.androidxCore)
     implementation(Libs.AndroidX.androidXLifeCycleRuntime)
+    implementation(Libs.AndroidX.lifecycleComposeRuntime)
     implementation(Libs.AndroidX.navigation)
     implementation(Libs.AndroidX.Compose.liveData)
     implementation(Libs.Coil.coil)

@@ -56,7 +56,8 @@ fun BottomSheetDirection(
     estimateDistanceAndTime: String,
     context: Context,
     isDirection: Boolean,
-    onDirectionClick: () -> Unit
+    onDirectionClick: () -> Unit,
+    onShareLocation:()->Unit,
 ) {
     LazyColumn(
         content = {
@@ -180,13 +181,12 @@ fun BottomSheetDirection(
                             }
                             Spacer(modifier = modifier.width(10.dp.from(context)))
                             OutlinedButton(
-                                onClick = { },
+                                onClick = onShareLocation,
                                 colors = ButtonDefaults.outlinedButtonColors(
                                     containerColor = Color.White,
                                 ),
                                 border = BorderStroke(1.dp, Color.Gray),
                                 shape = RoundedCornerShape(8.dp.from(context)),
-                                enabled = isDirection
                             ) {
                                 Text(
                                     text = "Share",
@@ -214,7 +214,8 @@ fun PreviewBottomSheetDirection() {
         address = "Tes Address",
         estimateDistanceAndTime = "2KM",
         context = LocalContext.current,
-        isDirection = false
+        isDirection = false,
+        onDirectionClick = {}
     ) {
 
     }

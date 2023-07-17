@@ -1,5 +1,9 @@
 package com.example.livetracking.ui.page.direction
 
+import android.content.Intent
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,9 +22,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.livetracking.domain.model.GyroData
+import com.example.livetracking.service.LocationService
 import com.example.livetracking.ui.component.bottomsheet.rememberBottomSheetScaffoldState
 import com.example.livetracking.ui.page.direction.Direction.onBack
 import com.example.livetracking.ui.page.direction.Direction.placeIdArgs
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.CameraPosition
@@ -44,6 +50,7 @@ object Direction {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.routeDirection(
     navHostController: NavHostController
 ) {
@@ -68,6 +75,7 @@ fun NavGraphBuilder.routeDirection(
         val destinationStateUI by viewModel.destinationStateUI.observeAsState(initial = DestinationStateUI())
         val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
         val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(initial = GyroData())
+        var isShareState by remember { mutableStateOf(false) }
 
         val bounds = locationStateUI.myLoc?.let { it1 ->
             destinationStateUI.destination?.let { it2 ->
@@ -104,34 +112,30 @@ fun NavGraphBuilder.routeDirection(
             )
         }
 
-        fun updateUiAndLocation() {
-            scope.launch {
-                bounds?.let { it1 ->
-                    CameraUpdateFactory.newLatLngBounds(
-                        it1,
-                        100
-                    )
-                }?.let { it2 ->
-                    cameraPositionState.animate(
-                        update = it2,
-                        durationMs = 1000
-                    )
-                }
+        fun updateUiAndLocation() = scope.launch {
+            bounds?.let { it1 ->
+                CameraUpdateFactory.newLatLngBounds(
+                    it1,
+                    100
+                )
+            }?.let { it2 ->
+                cameraPositionState.animate(
+                    update = it2,
+                    durationMs = 1000
+                )
             }
         }
 
-        fun updateDirectionCamera() {
-            scope.launch {
-                locationStateUI.myLoc?.let {
-                    cameraPositionState.animate(
-                        update = CameraUpdateFactory.newCameraPosition(
-                            CameraPosition(
-                                it, 25f, 50f, gyroScopeStateUI.azimuth
-                            ),
+        fun updateDirectionCamera() = scope.launch {
+            locationStateUI.myLoc?.let {
+                cameraPositionState.animate(
+                    update = CameraUpdateFactory.newCameraPosition(
+                        CameraPosition(
+                            it, 25f, 50f, gyroScopeStateUI.azimuth
                         ),
-                        durationMs = 100
-                    )
-                }
+                    ),
+                    durationMs = 100
+                )
             }
         }
 
@@ -180,6 +184,13 @@ fun NavGraphBuilder.routeDirection(
             isDirection = isDirectionState,
             onDirectionClick = {
                 isDirectionState = !isDirectionState
+            },
+            onShareLocation = {
+                Log.e("CLICK","CLICKY")
+                Intent(context, LocationService::class.java).apply {
+                    action = LocationService.ACTION_START
+                    context.startForegroundService(this)
+                }
             }
         )
     }

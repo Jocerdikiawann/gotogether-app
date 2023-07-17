@@ -69,4 +69,8 @@ class AuthRepositoryImpl(
             emit(true)
         }
     }.flowOn(dispatcherProvider.main())
+
+    override suspend fun getUser(): UserEntity {
+        return userDao.getUser() ?: UserEntity(googleId = "", email = "", fullName = "")
+    }
 }

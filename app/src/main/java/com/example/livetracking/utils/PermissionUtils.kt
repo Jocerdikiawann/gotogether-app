@@ -31,6 +31,9 @@ class PermissionUtils(private val context: Context) {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
         )
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            list.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
         return list.toTypedArray()
     }
 

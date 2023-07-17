@@ -13,8 +13,10 @@ import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.repository.design.AuthRepository
 import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.repository.design.RouteRepository
 import com.example.livetracking.repository.impl.AuthRepositoryImpl
 import com.example.livetracking.repository.impl.GoogleRepositoryImpl
+import com.example.livetracking.repository.impl.RouteRepositoryImpl
 import com.google.android.libraries.places.api.Places
 import dagger.Module
 import dagger.Provides
@@ -29,7 +31,7 @@ object DataModule {
 
     @Provides
     internal fun provideChannelGrpc(): ManagedChannel =
-        AppData.initChannel("192.168.1.31", 8888)
+        AppData.initChannel("192.168.1.2", 8888)
 
     @Provides
     internal fun providesGoogleDataSource(): GoogleDataSource = AppData.googleDataSource(
@@ -84,4 +86,17 @@ object DataModule {
             channel, dispatcherProvider,userDao, tokenDao
         )
     }
+
+    @Provides
+    internal fun provideRouteRepository(
+        dispatcherProvider: DispatcherProvider,
+        channel: ManagedChannel,
+        userDao: UserDao,
+        tokenDao: TokenDao
+    ): RouteRepository = RouteRepositoryImpl(
+        dispatcherProvider = dispatcherProvider,
+        channel = channel,
+        tokenDao = tokenDao,
+        userDao =userDao
+    )
 }
