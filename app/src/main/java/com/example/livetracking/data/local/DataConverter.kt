@@ -1,6 +1,7 @@
 package com.example.livetracking.data.local
 
 import androidx.room.TypeConverter
+import com.example.livetracking.domain.model.LocationData
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 
@@ -11,7 +12,6 @@ object DataConverter {
         if (data == null) return ""
         val gson = Gson()
         return gson.toJson(data)
-
     }
 
     @TypeConverter
@@ -21,5 +21,13 @@ object DataConverter {
         if (data == "") return null
         val gson = Gson()
         return gson.fromJson(data, LatLng::class.java)
+    }
+
+    @TypeConverter
+    @JvmStatic
+    fun fromLocationData(data: LocationData?): String {
+        if (data == null) return ""
+        val gson = Gson()
+        return gson.toJson(data)
     }
 }

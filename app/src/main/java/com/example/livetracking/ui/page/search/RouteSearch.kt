@@ -13,6 +13,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -35,11 +36,6 @@ object Search {
             launchSingleTop = true
         }
     }
-
-    internal class SearchArgs(val location: String) {
-        constructor(savedStateHandle: SavedStateHandle) :
-                this(checkNotNull(savedStateHandle[locationArgs]) as String)
-    }
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -47,10 +43,7 @@ fun NavGraphBuilder.routeSearch(
     navHostController: NavHostController,
 ) {
     composable(
-        "${Search.routeName}/{$locationArgs}",
-        arguments = listOf(navArgument(locationArgs) {
-            type = NavType.StringType
-        })
+        Search.routeName,
     ) {
         val context = LocalContext.current
         val focusRequester = remember {
@@ -60,14 +53,13 @@ fun NavGraphBuilder.routeSearch(
         var textSearch by remember { mutableStateOf("") }
 
         val viewModel = hiltViewModel<ViewModelSearch>()
-        val searchStateUI by viewModel.searchResultStateUI.observeAsState(SearchStateUI())
+        val searchStateUI by viewModel.searchResultStateUI.collectAsStateWithLifecycle(SearchStateUI())
 
         LaunchedEffect(key1 = true, block = {
             focusRequester.requestFocus()
         })
 
         LaunchedEffect(key1 = textSearch, block = {
-            delay(500)
             if (textSearch.isNotBlank()) {
                 viewModel.getCompleteLocation(textSearch)
             }

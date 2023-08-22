@@ -27,7 +27,7 @@ suspend fun <T> safeApiCall(call: suspend () -> Response<T>): DataState<T> {
                 return DataState.onFailure("Failed to authenticate")
             }
             val error = gson.fromJson(json, ErrorBody::class.java)
-            return DataState.onFailure(error.error_message.toString())
+            return DataState.onFailure(error_message = error.error_message.toString(), message = error.message.toString())
         }
         return DataState.onFailure(response.message())
     } catch (e: Exception) {
@@ -56,5 +56,6 @@ suspend fun <T> safeApiCall(call: suspend () -> Response<T>): DataState<T> {
 
 @Keep
 data class ErrorBody(
-    var error_message: String? = ""
+    var error_message: String? = "",
+    var message:String?=""
 )

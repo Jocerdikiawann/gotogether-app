@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.livetracking.AuthProto.UserResponse
 import com.example.livetracking.R
 import com.example.livetracking.ui.component.topbar.BaseTopBar
 import com.example.livetracking.ui.theme.LiveTrackingTheme
@@ -44,8 +43,8 @@ import com.example.livetracking.utils.from
 data class AuthStateUI(
     val loading: Boolean = false,
     val error: Boolean = false,
-    val errMsg: String = "",
-    val data: UserResponse? = null,
+    val errMsg: String = "Oops. Internal Server Error",
+    val success:Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -36,7 +36,6 @@ import com.example.livetracking.ui.component.bottomsheet.BottomSheetScaffoldStat
 import com.example.livetracking.ui.component.textfield.TextFieldSearch
 import com.example.livetracking.utils.BitmapDescriptor
 import com.example.livetracking.utils.from
-import com.example.livetracking.utils.updateRoutePolyline
 import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.JointType.ROUND
 import com.google.android.gms.maps.model.LatLng
@@ -44,7 +43,8 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
-import com.google.android.gms.maps.model.SquareCap
+import com.google.android.gms.maps.model.RoundCap
+import com.google.maps.android.PolyUtil
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
@@ -101,8 +101,11 @@ fun PageDirection(
     destinationLoading: Boolean,
     directionLoading: Boolean,
     isDirection: Boolean,
+    isShare:Boolean,
+    urlSharing:String,
     onDirectionClick: () -> Unit,
-    onShareLocation:()->Unit,
+    onShareLocation: () -> Unit,
+    copyUrl:()->Unit,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
     mapsUiSettings: MapUiSettings,
@@ -127,6 +130,9 @@ fun PageDirection(
                 isDirection = isDirection,
                 onDirectionClick = onDirectionClick,
                 onShareLocation = onShareLocation,
+                isShare = isShare,
+                url = urlSharing,
+                copyUrl = copyUrl
             )
         },
         scaffoldState = sheetState,
@@ -172,8 +178,8 @@ fun PageDirection(
                     val grayPolyline = map.addPolyline(
                         PolylineOptions()
                             .color(android.graphics.Color.TRANSPARENT)
-                            .startCap(SquareCap())
-                            .endCap(SquareCap())
+                            .startCap(RoundCap())
+                            .endCap(RoundCap())
                             .jointType(ROUND)
                             .addAll(route)
                     )
@@ -181,8 +187,8 @@ fun PageDirection(
                     primaryPolyLine = map.addPolyline(
                         PolylineOptions()
                             .color(R.color.primary)
-                            .startCap(SquareCap())
-                            .endCap(SquareCap())
+                            .startCap(RoundCap())
+                            .endCap(RoundCap())
                             .jointType(ROUND)
                     )
 
@@ -200,18 +206,33 @@ fun PageDirection(
                     polylineAnimator.start()
                 }
                 MapEffect(key1 = myLoc) {
-                    myLoc?.let {
-                        marker?.let {
-                            updateRoutePolyline(route,marker,primaryPolyLine)
-                            AnimationUtil.animateMarkerTo(marker, myLoc)
+                    myLoc?.let { lock ->
+                        marker?.let { mark ->
+//                            val points = primaryPolyLine?.points
+//                            points?.let { p ->
+//                                if (PolyUtil.isLocationOnPath(
+//                                        marker?.position,
+//                                        route,
+//                                        true,
+//                                        10.0
+//                                    )
+//                                ) {
+//                                    val item = findNearbyLocation(mark.position, route)
+//                                    p.remove(item)
+//                                } else {
+//                                    p.add(0, lock)
+//                                }
+//                                primaryPolyLine?.points = p
+//                            }
+                            AnimationUtil.animateMarkerTo(mark, lock)
                         }
                     }
                 }
                 MapEffect(key1 = rotationMarker, block = {
-                    marker?.rotation = if(isDirection) 0F else rotationMarker
+                    marker?.rotation = if (isDirection) 0F else rotationMarker
                 })
                 MapEffect(key1 = cameraPositionState.position.zoom, block = {
-                    primaryPolyLine?.width = it.cameraPosition.zoom
+                    primaryPolyLine?.width = it.cameraPosition.zoom + 10
                 })
             }
             Box(

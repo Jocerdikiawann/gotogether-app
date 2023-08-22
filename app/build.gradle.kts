@@ -1,24 +1,30 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    kotlin("kapt")
-    id("com.google.dagger.hilt.android")
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.daggerHiltAndroid)
+    alias(libs.plugins.google.mapsplatform)
     id("kotlin-parcelize")
-    id("com.google.protobuf")
+    kotlin("kapt")
 }
 
 val mapsApiKeys = findProperty("MAPS_API_KEYS")
 val baseUrlGoogle = findProperty("BASE_URL_GOOGLE")
 val baseUrlRoutesApi = findProperty("BASE_URL_ROUTES_API")
 val baseUrlRoadsApi = findProperty("BASE_URL_ROADS")
+val baseUrlShareTrip = findProperty("BASE_URL_SHARE_TRIP")
 val clientId = findProperty("GOOGLE_CLIENT_ID")
 val labelApp = findProperty("LABEL_APP")
+val brokerIp = findProperty("BROKER_IP")
+val brokerClientId = findProperty("BROKER_CLIENT_ID")
+val brokerUsername = findProperty("BROKER_USERNAME")
+val brokerPassword = findProperty("BROKER_PASSWORD")
 
 configurations.all {
     resolutionStrategy {
-        force("androidx.appcompat:appcompat:1.3.1")
-        force("androidx.appcompat:appcompat-resources:1.3.1")
+        force(libs.androidx.appcompat)
+        force(libs.androidx.appcompatResource)
     }
 }
 
@@ -28,7 +34,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.livetracking"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -42,7 +48,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -54,6 +60,11 @@ android {
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
             buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$clientId\"")
+            buildConfigField("String", "BASE_URL_SHARE_TRIP", "\"$baseUrlShareTrip\"")
+            buildConfigField("String", "BROKER_IP", "\"$brokerIp\"")
+            buildConfigField("String", "BROKER_USERNAME", "\"$brokerUsername\"")
+            buildConfigField("String", "BROKER_CLIENT_ID", "\"$brokerClientId\"")
+            buildConfigField("String", "BROKER_PASSWORD", "\"$brokerPassword\"")
         }
         debug {
             isMinifyEnabled = false
@@ -68,14 +79,19 @@ android {
             buildConfigField("String", "BASE_URL_ROUTES_API", "\"$baseUrlRoutesApi\"")
             buildConfigField("String", "BASE_URL_ROADS", "\"$baseUrlRoadsApi\"")
             buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$clientId\"")
+            buildConfigField("String", "BASE_URL_SHARE_TRIP", "\"$baseUrlShareTrip\"")
+            buildConfigField("String", "BROKER_IP", "\"$brokerIp\"")
+            buildConfigField("String", "BROKER_USERNAME", "\"$brokerUsername\"")
+            buildConfigField("String", "BROKER_CLIENT_ID", "\"$brokerClientId\"")
+            buildConfigField("String", "BROKER_PASSWORD", "\"$brokerPassword\"")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -84,10 +100,11 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.1"
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             excludes += "META-INF/gradle/incremental.annotation.processors"
+            excludes += listOf("META-INF/INDEX.LIST", "META-INF/io.netty.versions.properties")
         }
     }
 }
@@ -96,93 +113,58 @@ kapt {
     correctErrorTypes = true
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${rootProject.ext["protobufVersion"]}"
-    }
-    plugins {
-        create("java") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext["grpcVersion"]}"
-        }
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${rootProject.ext["grpcVersion"]}"
-        }
-        create("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:${rootProject.ext["grpcKotlinVersion"]}:jdk8@jar"
-        }
-    }
-    generateProtoTasks {
-        all().forEach {
-            it.plugins {
-                create("java") {
-                    option("lite")
-                }
-                create("grpc") {
-                    option("lite")
-                }
-                create("grpckt") {
-                    option("lite")
-                }
-            }
-            it.builtins {
-                create("kotlin") {
-                    option("lite")
-                }
-            }
-        }
-    }
-}
-
 dependencies {
-    runtimeOnly(Libs.Io.grpcOkHttp)
-    api(Libs.Io.grpcStub)
-    api(Libs.Io.protobuf)
-    api(Libs.Io.kotlinStub)
-    api(Libs.Io.protobufKotlin)
-    implementation(Libs.Joda.time)
-    implementation(platform(Libs.SquareUp.okhttpBOM))
-    implementation(Libs.SquareUp.okhttp)
-    implementation(Libs.SquareUp.logging)
-    implementation(Libs.AndroidX.Compose.util)
-    implementation(Libs.Google.gsonConverter)
-    implementation(Libs.Google.auth)
-    implementation(Libs.Maps.utils)
-    implementation(Libs.Maps.utilsKtx)
-    implementation(Libs.Maps.mapsKtx)
-    implementation(Libs.AndroidX.multidex)
-    implementation(Libs.Google.systemUi)
-    implementation(Libs.Google.shimmer)
-    implementation(Libs.Google.hiltNavigationCompose)
-    implementation(Libs.Google.location)
-    implementation(Libs.AndroidX.Room.roomRuntime)
-    implementation(Libs.AndroidX.Room.roomKtx)
-    annotationProcessor(Libs.AndroidX.Room.roomCompiler)
-    kapt(Libs.AndroidX.Room.roomCompiler)
-    implementation(Libs.AndroidX.androidxCore)
-    implementation(Libs.AndroidX.androidXLifeCycleRuntime)
-    implementation(Libs.AndroidX.lifecycleComposeRuntime)
-    implementation(Libs.AndroidX.navigation)
-    implementation(Libs.AndroidX.Compose.liveData)
-    implementation(Libs.Coil.coil)
-    implementation(Libs.SquareUp.retrofit)
-    implementation(Libs.Google.gson)
-    implementation(Libs.Google.dagger)
-    implementation(Libs.Google.daggerCompiler)
-    implementation(Libs.Kotlinx.coroutine)
-    implementation(Libs.AndroidX.Compose.activityCompose)
-    implementation(Libs.AndroidX.Compose.ui)
-    implementation(Libs.AndroidX.Compose.toolingpreview)
-    implementation(Libs.AndroidX.Compose.materialTree)
-    implementation(Libs.Maps.mapsCompose)
-    implementation(Libs.Maps.composeMapsUtils)
-    implementation(Libs.Maps.composeMapsWidgets)
-    implementation(Libs.Maps.place)
-    implementation(Libs.Maps.placeKtx)
-    implementation(Libs.Maps.playServiceMaps)
-    testImplementation(Libs.Junit.junit)
-    androidTestImplementation(Libs.AndroidX.Test.junit)
-    androidTestImplementation(Libs.AndroidX.Test.espresso)
-    androidTestImplementation(Libs.AndroidX.Test.composeTestJunit)
-    debugImplementation(Libs.AndroidX.Compose.uiTooling)
-    debugImplementation(Libs.AndroidX.Compose.uiTestManifest)
+    implementation(libs.courier.courier)
+    implementation(libs.courier.gson)
+    implementation(libs.courier.stream)
+    implementation(libs.courier.ping)
+    implementation(libs.courier.chucker)
+    implementation(libs.jakewharton.timber)
+    implementation(libs.joda.time)
+    implementation(platform(libs.squareup.okhttp3Bom))
+    implementation(libs.squareup.okhttp)
+    implementation(libs.squareup.logging)
+    implementation(libs.squareup.gson)
+    implementation(libs.androidx.uiUtil)
+    implementation(libs.google.gson)
+    implementation(libs.google.playServiceAuth)
+    implementation(libs.google.composeMapsUtils)
+    implementation(libs.google.utilsKtx)
+    implementation(libs.google.utils)
+    implementation(libs.google.mapsKtx)
+    implementation(libs.androidx.multidex)
+    implementation(libs.google.systemUiController)
+    implementation(libs.google.placeHolderMaterial)
+    implementation(libs.androidx.hiltNavigationCompose)
+    implementation(libs.google.playServiceLocation)
+    implementation(libs.androidx.roomRuntime)
+    annotationProcessor(libs.androidx.roomCompiler)
+    implementation(libs.androidx.roomKtx)
+    kapt(libs.androidx.roomCompiler)
+    implementation(libs.androidx.ktx)
+    implementation(libs.androidx.lifecycleRuntimeKtx)
+    implementation(libs.androidx.lifecycleRuntimeCompose)
+    implementation(libs.androidx.navigationCompose)
+    implementation(libs.androidx.runtimeLiveData)
+    implementation(libs.coil.compose)
+    implementation(libs.squareup.retrofit)
+    implementation(libs.google.hiltAndroid)
+    implementation(libs.google.hiltCompoiler)
+    implementation(libs.jetbrains.kotlinxCoroutineAndroid)
+    implementation(libs.androidx.activityCompose)
+    implementation(libs.androidx.composeUi)
+    implementation(libs.androidx.uiToolingPreview)
+    implementation(libs.androidx.material3)
+    implementation(libs.google.mapsCompose)
+    implementation(libs.google.composeMapsUtils)
+    implementation(libs.google.composeMapsWidgets)
+    implementation(libs.google.place)
+    implementation(libs.google.placeKtx)
+    implementation(libs.google.playServiceMaps)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espressoCore)
+    androidTestImplementation(libs.androidx.uiTestJunit)
+    debugImplementation(libs.androidx.uiTooling)
+    debugImplementation(libs.androidx.uiTestManifest)
 }

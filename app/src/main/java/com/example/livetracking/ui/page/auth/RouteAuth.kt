@@ -12,6 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.livetracking.data.utils.AuthResultContract
 import com.example.livetracking.ui.page.splash.Splash.navigateToHome
+import com.example.livetracking.utils.toast
 
 object Auth {
     const val routeName = "auth"
@@ -21,6 +22,7 @@ fun NavGraphBuilder.routeAuth(
     navHostController: NavHostController,
 ) {
     composable(Auth.routeName) {
+        val context = LocalContext.current
         val viewModel = hiltViewModel<ViewModelAuth>()
         val authStateUI by viewModel.authStateUI.collectAsState(initial = AuthStateUI())
         val authResultLauncher = rememberLauncherForActivityResult(
@@ -30,11 +32,14 @@ fun NavGraphBuilder.routeAuth(
         }
         val activity = (LocalContext.current as? Activity)
 
-        LaunchedEffect(key1 = authStateUI.data?.success) {
-            if (authStateUI.data?.success == true) {
+        LaunchedEffect(key1 = authStateUI.success) {
+            if (authStateUI.success) {
                 with(navHostController) {
                     navigateToHome()
                 }
+            }
+            if (authStateUI.error) {
+                context.toast(authStateUI.errMsg)
             }
         }
         PageAuth(loading = authStateUI.loading, onSignIn = {

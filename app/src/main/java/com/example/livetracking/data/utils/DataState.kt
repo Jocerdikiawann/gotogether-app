@@ -10,5 +10,5 @@ const val INTERNAL_SERVER_ERROR = "You don't have permission to use this resourc
 sealed class DataState<out T>{
     object onLoading: DataState<Nothing>()
     data class onData<out Result>(val data:Result): DataState<Result>()
-    data class onFailure(val error_message: String=""): DataState<Nothing>()
+    data class onFailure(val error_message: String="",val message:String=""): DataState<Nothing>()
 }

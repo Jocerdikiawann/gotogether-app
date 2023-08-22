@@ -1,9 +1,7 @@
 package com.example.livetracking.ui.component.card
 
 import android.content.Context
-import android.location.Location
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,12 +29,10 @@ fun CardMap(
     modifier: Modifier = Modifier,
     ctx: Context,
     latLng: LatLng,
-    rotationMarker:Float,
+    rotationMarker: Float,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
-    mapsUiSettings: MapUiSettings,
-    onMapLoaded: () -> Unit,
-    onMyLocationButtonClick: (Location) -> Unit
+    mapsUiSettings: MapUiSettings
 ) {
     Card(
         modifier = modifier
@@ -47,25 +43,19 @@ fun CardMap(
         shape = RoundedCornerShape(10.dp.from(ctx)),
         border = BorderStroke(0.8.dp, Color.Gray)
     ) {
-        Box {
-            GoogleMap(
-                modifier = modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                googleMapOptionsFactory = { googleMapOptions() },
-                onMapLoaded = { onMapLoaded() },
-                uiSettings = mapsUiSettings,
-                onMyLocationClick = {
-                    onMyLocationButtonClick(it)
-                }
-            ) {
-                Marker(
-                    icon = BitmapDescriptor(ctx, R.drawable.ic_directions),
-                    state = MarkerState(latLng),
-                    title = "Your Location Here",
-                    snippet = "marker in your location",
-                    rotation = rotationMarker
-                )
-            }
+        GoogleMap(
+            modifier = modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            googleMapOptionsFactory = { googleMapOptions() },
+            uiSettings = mapsUiSettings,
+        ) {
+            Marker(
+                icon = BitmapDescriptor(ctx, R.drawable.ic_directions),
+                state = MarkerState(latLng),
+                title = "Your Location Here",
+                snippet = "marker in your location",
+                rotation = rotationMarker
+            )
         }
     }
 }

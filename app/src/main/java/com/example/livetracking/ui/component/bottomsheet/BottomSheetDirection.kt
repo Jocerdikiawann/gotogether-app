@@ -2,23 +2,27 @@ package com.example.livetracking.ui.component.bottomsheet
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -32,7 +36,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,10 +50,8 @@ import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.material.fade
 import com.google.accompanist.placeholder.placeholder
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BottomSheetDirection(
-    modifier: Modifier = Modifier,
     destinationLoading: Boolean,
     directionLoading: Boolean,
     imageUrl: Bitmap?,
@@ -56,18 +60,21 @@ fun BottomSheetDirection(
     estimateDistanceAndTime: String,
     context: Context,
     isDirection: Boolean,
+    isShare: Boolean,
+    url:String,
+    copyUrl:()->Unit,
     onDirectionClick: () -> Unit,
-    onShareLocation:()->Unit,
+    onShareLocation: () -> Unit,
 ) {
     LazyColumn(
         content = {
             item {
                 Row(
-                    modifier = modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Box(
-                        modifier = modifier
+                        modifier = Modifier
                             .height(5.dp.from(context))
                             .width(50.dp.from(context))
                             .clip(RoundedCornerShape(10.dp.from(context)))
@@ -81,7 +88,7 @@ fun BottomSheetDirection(
             }
             item {
                 Row(
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(12.dp.from(context)),
                 ) {
@@ -90,8 +97,8 @@ fun BottomSheetDirection(
                             ?: ImageBitmap.imageResource(id = R.drawable.placeholder_image_default),
                         contentDescription = "image_place",
                         contentScale = ContentScale.Crop,
-                        modifier = modifier
-                            .height(100.dp.from(context))
+                        modifier = Modifier
+                            .wrapContentHeight()
                             .width(100.dp.from(context))
                             .clip(RoundedCornerShape(8.dp.from(context)))
                             .border(
@@ -105,24 +112,63 @@ fun BottomSheetDirection(
                                 color = Color.Gray
                             ),
                     )
-                    Spacer(modifier = modifier.width(10.dp.from(context)))
+                    Spacer(modifier = Modifier.width(10.dp.from(context)))
                     Column(horizontalAlignment = Alignment.Start) {
+                        if(isShare){
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { copyUrl() }
+                                    .clip(RoundedCornerShape(8.dp.from(context)))
+                                    .background(Color.Gray.copy(alpha = .2f)),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = url,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 14.sp.from(context),
+                                        color = Color.Gray
+                                    ),
+                                    modifier = Modifier
+                                        .weight(2f)
+                                        .padding(
+                                            start = 10.dp.from(context),
+                                            top = 10.dp.from(context),
+                                            bottom = 10.dp.from(context),
+                                        ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_copy_content),
+                                    contentDescription = "ic_copy",
+                                    tint = Color.Black,
+                                    modifier = Modifier
+                                        .weight(0.3f)
+                                        .padding(horizontal=10.dp)
+                                )
+                            }
+                            Spacer(Modifier.height(5.dp.from(context)))
+                        }
                         Text(
                             text = title,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 14.sp.from(context),
                                 fontWeight = FontWeight.Medium
                             ),
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .placeholder(
                                     visible = destinationLoading,
                                     highlight = PlaceholderHighlight.fade(),
                                     shape = RoundedCornerShape(8.dp.from(context)),
                                     color = Color.Gray,
-                                )
+                                ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier.height(5.dp.from(context)))
+                        Spacer(Modifier.height(5.dp.from(context)))
                         Text(
                             text = address,
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -130,7 +176,7 @@ fun BottomSheetDirection(
                                 fontWeight = FontWeight.Normal,
                                 color = Color.Gray
                             ),
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .placeholder(
                                     visible = destinationLoading,
@@ -139,7 +185,7 @@ fun BottomSheetDirection(
                                     color = Color.Gray,
                                 ),
                         )
-                        Spacer(modifier.height(10.dp.from(context)))
+                        Spacer(Modifier.height(10.dp.from(context)))
                         Text(
                             text = estimateDistanceAndTime,
                             style = MaterialTheme.typography.labelSmall.copy(
@@ -147,7 +193,7 @@ fun BottomSheetDirection(
                                 fontWeight = FontWeight.Normal,
                                 color = Color.Gray
                             ),
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .placeholder(
                                     visible = directionLoading,
@@ -156,9 +202,9 @@ fun BottomSheetDirection(
                                     color = Color.Gray,
                                 )
                         )
-                        Spacer(modifier.height(5.dp.from(context)))
+                        Spacer(Modifier.height(5.dp.from(context)))
                         Row(
-                            modifier = modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -169,7 +215,8 @@ fun BottomSheetDirection(
                                     contentColor = if (isDirection) Secondary else Primary
                                 ),
                                 border = BorderStroke(1.dp, Color.Gray),
-                                shape = RoundedCornerShape(8.dp.from(context))
+                                shape = RoundedCornerShape(8.dp.from(context)),
+                                modifier = Modifier.weight(1f)
                             ) {
                                 Text(
                                     text = if (isDirection) "Stop" else "Direction",
@@ -179,7 +226,7 @@ fun BottomSheetDirection(
                                     )
                                 )
                             }
-                            Spacer(modifier = modifier.width(10.dp.from(context)))
+                            Spacer(modifier = Modifier.width(10.dp.from(context)))
                             OutlinedButton(
                                 onClick = onShareLocation,
                                 colors = ButtonDefaults.outlinedButtonColors(
@@ -187,9 +234,10 @@ fun BottomSheetDirection(
                                 ),
                                 border = BorderStroke(1.dp, Color.Gray),
                                 shape = RoundedCornerShape(8.dp.from(context)),
+                                modifier = Modifier.weight(1f)
                             ) {
                                 Text(
-                                    text = "Share",
+                                    text = if (isShare) "Stop" else "Share",
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontSize = 12.sp.from(context),
                                         fontWeight = FontWeight.Normal,
@@ -215,7 +263,10 @@ fun PreviewBottomSheetDirection() {
         estimateDistanceAndTime = "2KM",
         context = LocalContext.current,
         isDirection = false,
-        onDirectionClick = {}
+        onDirectionClick = {},
+        isShare = false,
+        url="http://localhost:3000/jadkajsdkabsdkja",
+        copyUrl = {}
     ) {
 
     }

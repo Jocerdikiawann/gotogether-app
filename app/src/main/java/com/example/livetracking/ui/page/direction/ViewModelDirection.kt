@@ -9,15 +9,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.model.GyroData
+import com.example.livetracking.domain.model.request.Destiny
 import com.example.livetracking.domain.utils.RouteTravelModes
 import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.repository.design.RouteRepository
+import com.example.livetracking.utils.DefaultLocationClient
 import com.example.livetracking.utils.GyroscopeUtils
-import com.example.livetracking.utils.LocationUtils
+import com.example.livetracking.utils.toLatLng
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,17 +30,18 @@ import javax.inject.Inject
 @HiltViewModel
 class ViewModelDirection @Inject constructor(
     private val googleRepository: GoogleRepository,
+    private val routeRepository: RouteRepository,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext context: Context
 ) : ViewModel() {
     private val destinationArgs = Direction.DirectionArgs(savedStateHandle)
-    private val locationUtils = LocationUtils(context, DURATION_FOR_CHANGE_LOCATION = 50)
+    private val locationClient = DefaultLocationClient(context, 100)
     private val gyroscopeUtils = GyroscopeUtils(context)
 
     private var _destinationStateUI = MutableLiveData<DestinationStateUI>(DestinationStateUI())
     val destinationStateUI get() = _destinationStateUI
 
-    private var _locationStateUI = MutableLiveData<LocationStateUI>(LocationStateUI())
+    private var _locationStateUI = MutableStateFlow(LocationStateUI())
     val locationStateUI get() = _locationStateUI
 
     private var _directionStateUI = MutableLiveData<DirectionStateUI>(DirectionStateUI())
@@ -47,11 +53,8 @@ class ViewModelDirection @Inject constructor(
     private var _gpsIsOn = MutableLiveData<Boolean?>(null)
     val gpsIsOn get() = _gpsIsOn
 
-    private val locationObserver = Observer<Location> { currentLocation ->
-        _locationStateUI.postValue(
-            LocationStateUI(LatLng(currentLocation.latitude, currentLocation.longitude))
-        )
-    }
+    private var _urlSharing = MutableStateFlow("")
+    val urlSharing get() = _urlSharing
 
     private val gyroscopeObserver = Observer<GyroData> {
         _gyroscopeStateUI.postValue(
@@ -65,20 +68,16 @@ class ViewModelDirection @Inject constructor(
 
     init {
         getDetailPlace()
-        locationUtils.observeForever(locationObserver)
         gyroscopeUtils.observeForever(gyroscopeObserver)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        locationUtils.removeObserver(locationObserver)
-        locationUtils.stopUpdateLocation()
+        locationClient.getLocationUpdates().onEach {
+            _locationStateUI.emit(LocationStateUI(it.toLatLng()))
+        }.launchIn(viewModelScope)
     }
 
     private fun getDirectionRoutes(destination: LatLng) =
         viewModelScope.launch {
             googleRepository.getRoutesDirection(
-                origin = locationStateUI.value?.myLoc ?: LatLng(0.0, 0.0),
+                origin = locationStateUI.value.myLoc ?: LatLng(0.0, 0.0),
                 destination = destination,
                 travelModes = RouteTravelModes.TWO_WHEELER,
             ).onEach {
@@ -92,12 +91,15 @@ class ViewModelDirection @Inject constructor(
                                         time == null -> {
                                             "0 Sec"
                                         }
+
                                         (time >= 3600) -> {
                                             "${time / 3600} Hour ${(time % 3600) / 60} Min"
                                         }
+
                                         time >= 60 -> {
                                             "${time / 60} Min ${(time % 60)} Sec"
                                         }
+
                                         else -> {
                                             "$time Sec"
                                         }
@@ -113,12 +115,14 @@ class ViewModelDirection @Inject constructor(
                                 } ?: listOf()
                             )
                         }
+
                         is DataState.onFailure -> {
                             DirectionStateUI(
                                 error = true,
                                 errMsg = it.error_message
                             )
                         }
+
                         DataState.onLoading -> {
                             DirectionStateUI(
                                 loading = true
@@ -142,12 +146,14 @@ class ViewModelDirection @Inject constructor(
                             image = it.data.photoBitmap
                         )
                     }
+
                     is DataState.onFailure -> {
                         DestinationStateUI(
                             error = true,
                             errMsg = it.error_message
                         )
                     }
+
                     DataState.onLoading -> {
                         DestinationStateUI(
                             loading = true
@@ -158,5 +164,25 @@ class ViewModelDirection @Inject constructor(
         }.collect()
     }
 
-
+    fun sendDestinationAndPolyline() = viewModelScope.launch {
+        routeRepository.sendDestinationAndPolyline(
+            destination = Destiny(
+                latitude = destinationStateUI.value?.destination?.latitude ?: 0.0,
+                longitude = destinationStateUI.value?.destination?.longitude ?: 0.0
+            ),
+            encodedRoute = PolyUtil.encode(_directionStateUI.value?.data?.firstOrNull()?.route),
+            initialLocation = Destiny(
+                latitude = locationStateUI.value.myLoc?.latitude ?: 0.0,
+                longitude = locationStateUI.value.myLoc?.longitude ?: 0.0,
+            )
+        ).onEach {
+            _urlSharing.emit(
+                when(it){
+                    is DataState.onData->"http://localhost:5173/${it.data.id}"
+                    is DataState.onFailure->it.error_message
+                    is DataState.onLoading->"Waiting...."
+                }
+            )
+        }.collect()
+    }
 }

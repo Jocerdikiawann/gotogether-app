@@ -6,39 +6,37 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.location.Location
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.Observer
+import com.example.livetracking.BuildConfig
 import com.example.livetracking.R
-import com.example.livetracking.RouteGrpc
-import com.example.livetracking.RouteProto
 import com.example.livetracking.data.local.room.TokenDao
 import com.example.livetracking.data.local.room.UserDao
-import com.example.livetracking.data.remote.AppData
+import com.example.livetracking.data.remote.services.CourierService
 import com.example.livetracking.domain.model.LocationData
-import com.example.livetracking.locationRequest
-import com.example.livetracking.point
+import com.example.livetracking.domain.model.request.LocationRequest
 import com.example.livetracking.repository.design.AuthRepository
-import com.example.livetracking.utils.LocationUtils
+import com.example.livetracking.utils.DefaultLocationClient
+import com.example.livetracking.utils.LocationClient
+import com.gojek.courier.callback.SendMessageCallback
+import com.gojek.mqtt.client.MqttClient
+import com.gojek.mqtt.model.KeepAlive
+import com.gojek.mqtt.model.MqttConnectOptions
+import com.gojek.mqtt.model.ServerUri
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import io.grpc.ManagedChannel
-import io.grpc.Metadata
-import io.grpc.stub.MetadataUtils
-import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -52,17 +50,31 @@ class LocationService : Service() {
     lateinit var tokenDao: TokenDao
 
     @Inject
-    lateinit var userDao:UserDao
+    lateinit var userDao: UserDao
 
-    private lateinit var channel: ManagedChannel
+    @Inject
+    lateinit var mqttClient: MqttClient
+
+    @Inject
+    lateinit var courierService: CourierService
+
+    private val TAG = "SERVICE"
+
     private lateinit var notificationManager: NotificationManager
-    private lateinit var locationUtils: LocationUtils
-    private lateinit var locationObserver: Observer<Location>
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val notificationID = 1
     private val notificationChannel = "location_notify"
-    private val mutableOfLocation : MutableStateFlow<LocationData> = MutableStateFlow(LocationData())
+    private val mutableOfLocation: MutableStateFlow<LocationData> = MutableStateFlow(LocationData())
+    private val mqttConnectionOptions: MqttConnectOptions =
+        MqttConnectOptions.Builder()
+            .serverUris(listOf(ServerUri("broker.hivemq.com", 8884, "wss")))
+            .clientId(BuildConfig.BROKER_CLIENT_ID)
+            .userName(BuildConfig.BROKER_USERNAME)
+            .password(BuildConfig.BROKER_PASSWORD)
+            .cleanSession(false)
+            .keepAlive(KeepAlive(timeSeconds = 60))
+            .build()
 
     companion object {
         const val ACTION_START = "ACTION_START"
@@ -73,56 +85,53 @@ class LocationService : Service() {
 
     private suspend fun sendLocation() {
         try {
-            channel = AppData.initChannel("192.168.1.2", 8888)
-            val header = Metadata()
-            val key =
-                Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
-            val googleId = userDao.getUser()?.googleId.orEmpty()
-            val token = tokenDao.getToken()?.token.orEmpty()
-            header.put(key, token)
-            val stub = RouteGrpc.newStub(channel)
-                .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(header))
-            val observer =  stub.sendLocation(object : StreamObserver<RouteProto.LocationResponse> {
-                override fun onNext(value: RouteProto.LocationResponse) {
-                    Log.e("ON_NEXT", value.toString())
-                }
-
-                override fun onError(t: Throwable?) {
-                    Log.e("ON_ERROR", t?.message.toString())
-                }
-
-                override fun onCompleted() {
-                    channel.shutdown()
-                }
-            })
+            val gson = Gson()
             mutableOfLocation.onEach {
-                observer?.onNext(locationRequest {
-                    this.point = point {
-                        this.latitude = it.lat
-                        this.longitude = it.lng
+                courierService.publish(
+                    "topic/location",
+                    message = LocationRequest(
+                        id = 1,
+                        data = gson.toJson(
+                            LocationData(
+                                lat = it.lat,
+                                lng = it.lng
+                            )
+                        )
+                    ),
+                    callback = object : SendMessageCallback {
+                        override fun onMessageSendFailure(error: Throwable) {
+                            Timber.tag(TAG).e("onMessageSendFailure $error")
+                        }
+
+                        override fun onMessageSendSuccess() {
+                            Timber.tag(TAG).i("onMessageSendSuccess")
+                        }
+
+                        override fun onMessageSendTrigger() {
+                            Timber.tag(TAG).i("onMessageSendTrigger")
+                        }
+
+                        override fun onMessageWrittenOnSocket() {
+                            Timber.tag(TAG).i("onMessageWrittenOnSocket")
+                        }
+
                     }
-                    this.googleId = googleId
-                    this.isFinish = false
-                })
+                )
+                Timber.tag("DISINI").e("Lat : ${it.lat} Long:${it.lng}")
             }.collect()
         } catch (e: Exception) {
-            Log.e("ERROR", e.message.toString())
+            Timber.tag(TAG).d(e)
         }
     }
 
     override fun onCreate() {
         super.onCreate()
-        locationUtils = LocationUtils(applicationContext, 0)
-        locationObserver = Observer<Location> {
-            serviceScope.launch {
-                mutableOfLocation.emit(LocationData(
-                    lat = it.latitude,
-                    lng = it.longitude
-                ))
-            }
-        }
+        DefaultLocationClient(applicationContext, 500).getLocationUpdates().onEach {
+            mutableOfLocation.emit(LocationData(it.latitude, it.longitude))
+        }.launchIn(serviceScope)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
+        mqttClient.connect(mqttConnectionOptions)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -184,14 +193,10 @@ class LocationService : Service() {
                     "Stop",
                     pendingIntentStop
                 )
-
-            locationUtils.observeForever(locationObserver)
-            serviceScope.launch {
-                sendLocation()
-            }
             startForeground(notificationID, builder.build())
+            serviceScope.launch { sendLocation() }
         } catch (e: Exception) {
-            Log.e("EN", e.message.toString())
+            Timber.tag(TAG).d(e)
         }
     }
 
@@ -203,18 +208,14 @@ class LocationService : Service() {
             stopForeground(true)
         }
         stopSelf()
-        locationUtils.removeObserver(locationObserver)
-        locationUtils.stopUpdateLocation()
         notificationManager.cancel(notificationID)
-        channel.shutdown()
+        mqttClient.disconnect()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         serviceScope.cancel()
-        locationUtils.removeObserver(locationObserver)
-        locationUtils.stopUpdateLocation()
-        channel.shutdown()
+        mqttClient.disconnect()
     }
 
 }

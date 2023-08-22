@@ -11,7 +11,6 @@ import com.example.livetracking.ui.page.dashboard.home.routeDashboard
 import com.example.livetracking.ui.page.dashboard.main.Main.navigateTo
 import com.example.livetracking.ui.page.dashboard.saved.routeSaved
 import com.example.livetracking.ui.page.search.Search
-import com.google.gson.Gson
 
 object Main {
     const val routeName = "main"
@@ -27,17 +26,17 @@ fun NavGraphBuilder.dashboardGraph(
         routeHistory(onNavigateToItemDashboard = {
             navHostController.navigateTo(it, navOptions = navOptions { launchSingleTop = true })
         })
-        routeDashboard(onNavigateToItemDashboard = {
-            navHostController.navigateTo(it, navOptions = navOptions { launchSingleTop = true })
-        }, onNavigateToSearchLocation = {
-            val gson = Gson()
-            val data = gson.toJson(it)
-            navHostController.navigateTo(
-                "${Search.routeName}/$data",
-                navOptions = navOptions {
-                    launchSingleTop = true
-                })
-        })
+        routeDashboard(
+            onNavigateToItemDashboard = {
+                navHostController.navigateTo(it, navOptions = navOptions { launchSingleTop = true })
+            },
+            onNavigateToSearchLocation = {
+                navHostController.navigateTo(
+                    Search.routeName,
+                    navOptions = navOptions {
+                        launchSingleTop = true
+                    })
+            })
         routeSaved(onNavigateToItemDashboard = {
             navHostController.navigateTo(it, navOptions { launchSingleTop = true })
         })

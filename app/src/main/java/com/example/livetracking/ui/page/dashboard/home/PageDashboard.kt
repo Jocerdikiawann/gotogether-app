@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -70,8 +69,7 @@ fun PageDashboard(
     havePermission: LocationStateUI,
     dashboardStateUI: DashboardStateUI,
     cameraPositionState: CameraPositionState,
-    rotationMarker:Float,
-    onMapReady: (Boolean) -> Unit,
+    rotationMarker: Float,
     mapsUiSettings: MapUiSettings,
     addressStateUI: AddressStateUI,
     onGivePermission: () -> Unit,
@@ -83,9 +81,7 @@ fun PageDashboard(
     when (havePermission.permission) {
         null -> Unit
         true -> {
-            LazyColumn(modifier = modifier
-                .fillMaxSize()
-                .padding(top = 15.dp.from(ctx)), content = {
+            LazyColumn(modifier = modifier, content = {
                 item {
                     TextFieldSearch(
                         onValueChange = {},
@@ -101,7 +97,7 @@ fun PageDashboard(
                 }
                 item {
                     Row(
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(
                                 start = 12.dp.from(ctx),
@@ -132,14 +128,8 @@ fun PageDashboard(
                     CardMap(
                         ctx = ctx,
                         latLng = LatLng(dashboardStateUI.lat, dashboardStateUI.lng),
+                        rotationMarker = rotationMarker,
                         cameraPositionState = cameraPositionState,
-                        mapsUiSettings = mapsUiSettings,
-                        onMapLoaded = {
-                            onMapReady(true)
-                        },
-                        onMyLocationButtonClick = {
-
-                        },
                         googleMapOptions = {
                             GoogleMapOptions().camera(
                                 CameraPosition.fromLatLngZoom(
@@ -151,23 +141,23 @@ fun PageDashboard(
                                 )
                             )
                         },
-                        rotationMarker = rotationMarker
+                        mapsUiSettings = mapsUiSettings
                     )
-                    Spacer(modifier = modifier.height(12.dp.from(ctx)))
+                    Spacer(modifier = Modifier.height(12.dp.from(ctx)))
                     Row(
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp.from(ctx)),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         CardIconMarker(
                             ctx = ctx,
-                            modifier = modifier
+                            modifier = Modifier
                                 .width(30.dp.from(ctx))
                                 .height(30.dp.from(ctx))
                         )
-                        Spacer(modifier = modifier.width(10.dp.from(ctx)))
-                        Text(modifier = modifier.placeholder(
+                        Spacer(modifier = Modifier.width(10.dp.from(ctx)))
+                        Text(modifier = Modifier.placeholder(
                             visible = addressStateUI.loading,
                             highlight = PlaceholderHighlight.fade(),
                             shape = RoundedCornerShape(8.dp.from(ctx)),
@@ -201,12 +191,12 @@ fun PageDashboard(
                 }
                 item {
                     Column(
-                        modifier = modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 15.dp.from(ctx))
                     ) {
                         Row(
-                            modifier = modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
                                     horizontal = 12.dp.from(ctx),

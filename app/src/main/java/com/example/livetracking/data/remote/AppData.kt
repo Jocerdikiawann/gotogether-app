@@ -5,15 +5,14 @@ import androidx.room.Room
 import com.example.livetracking.data.local.room.AppDatabase
 import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
+import com.example.livetracking.data.remote.design.ShareTripDataSource
 import com.example.livetracking.data.remote.impl.GoogleDataSourceImpl
 import com.example.livetracking.data.remote.impl.RoutesDataSourceImpl
+import com.example.livetracking.data.remote.impl.ShareTripDataSourceImpl
+import com.example.livetracking.data.remote.services.ClientShareTripApiServices
 import com.example.livetracking.data.remote.services.GoogleApiServices
 import com.example.livetracking.data.remote.services.RoutesApiServices
-import io.grpc.Channel
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asExecutor
+import com.gojek.mqtt.client.config.v3.MqttV3Configuration
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -81,16 +80,30 @@ class AppData {
             return RoutesDataSourceImpl(service)
         }
 
+
+        fun clientShareTripSource(
+            baseUrl: String
+        ): ShareTripDataSource {
+            val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(httpLoggingInterceptor)
+                .connectTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .readTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .writeTimeout(REQUEST_TIMEOUT.toLong(), TimeUnit.MINUTES)
+                .build()
+
+            val retro = Retrofit.Builder()
+                .baseUrl("http://$baseUrl/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build()
+            val service = retro.create(ClientShareTripApiServices::class.java)
+            return ShareTripDataSourceImpl(service)
+        }
+
         fun initDatabase(appContext: Context): AppDatabase = Room.databaseBuilder(
             appContext,
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         ).fallbackToDestructiveMigration().build()
-
-        fun initChannel(
-            baseUrl: String,
-            port: Int
-        ): ManagedChannel = ManagedChannelBuilder.forAddress(baseUrl, port).usePlaintext()
-            .executor(Dispatchers.IO.asExecutor()).build()
     }
 }

@@ -1,64 +1,65 @@
 package com.example.livetracking.repository.impl
 
-import com.example.livetracking.AuthGrpcKt
-import com.example.livetracking.AuthProto.UserResponse
 import com.example.livetracking.data.coroutines.DispatcherProvider
 import com.example.livetracking.data.local.room.TokenDao
 import com.example.livetracking.data.local.room.UserDao
+import com.example.livetracking.data.remote.design.ShareTripDataSource
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.entity.TokenEntity
 import com.example.livetracking.domain.entity.UserEntity
+import com.example.livetracking.domain.model.request.AuthRequest
 import com.example.livetracking.repository.design.AuthRepository
-import com.example.livetracking.userRequest
-import io.grpc.ManagedChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import java.net.ConnectException
 
 class AuthRepositoryImpl(
-    private val channel: ManagedChannel,
     private val dispatcherProvider: DispatcherProvider,
     private val userDao: UserDao,
     private val tokenDao: TokenDao,
+    private val shareTripDataSource: ShareTripDataSource,
 ) : AuthRepository {
     override suspend fun signInWithGoogle(
         id: String,
         email: String,
         fullName: String
-    ): Flow<DataState<UserResponse>> = flow {
+    ): Flow<DataState<Boolean>> = flow {
         emit(DataState.onLoading)
         try {
-            val stub = AuthGrpcKt.AuthCoroutineStub(channel)
-            val request = userRequest {
-                this.googleId = id
-                this.email = email
-                this.name = fullName
-            }
-            val response = stub.signUp(request)
-            if (response.success) {
-                userDao.insert(
-                    UserEntity(
-                        id = 1,
-                        googleId = id,
-                        fullName = fullName,
-                        email = email,
-                    )
+            when (val result = shareTripDataSource.authentication(
+                AuthRequest(
+                    id, email, fullName
                 )
-                tokenDao.insert(
-                    TokenEntity(
-                        id = 1,
-                        token = response.token
-                    )
-                )
-                emit(DataState.onData(response))
-            } else {
-                emit(DataState.onFailure(response.message))
+            )) {
+                DataState.onLoading -> emit(DataState.onLoading)
+                is DataState.onData -> {
+                    if (result.data.success == true) {
+                        val data = result.data.data
+                        tokenDao.insert(
+                            TokenEntity(
+                                token = result.data.token.orEmpty()
+                            )
+                        )
+                        userDao.insert(
+                            UserEntity(
+                                googleId = data?.googleId.orEmpty(),
+                                fullName = data?.name.orEmpty(),
+                                email = data?.email.orEmpty(),
+                            )
+                        )
+                        emit(DataState.onData(true))
+                    } else {
+                        emit(DataState.onFailure(result.data.message))
+                    }
+                }
+
+                is DataState.onFailure -> emit(DataState.onFailure(result.message))
             }
-        } catch (e: Exception) {
-            emit(DataState.onFailure(e.message ?: "Internal Error"))
-        } finally {
-            channel.shutdownNow()
+        } catch (e: ConnectException) {
+            emit(DataState.onFailure("Internal Server Error"))
         }
+
     }.flowOn(dispatcherProvider.io())
 
     override suspend fun checkIsLoggedIn(): Flow<Boolean> = flow<Boolean> {
