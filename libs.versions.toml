@@ -28,7 +28,7 @@ courier-chucker = { group = "com.gojek.courier", name = "chuck-mqtt", version.re
 androidx-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
 androidx-lifecycleRuntimeKtx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifeCycleVersion" }
 androidx-lifecycleRuntimeCompose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifeCycleVersion" }
-androidx-navigationCompose = { group = "androidx.navigation", name = "navigation-compose", version = "2.6.0" }
+androidx-navigationCompose = { group = "androidx.navigation", name = "navigation-compose", version = "2.7.0" }
 androidx-multidex = { group = "androidx.multidex", name = "multidex", version = "2.0.1" }
 androidx-composeUi = { group = "androidx.compose.ui", name = "ui", version.ref = "composeVersion" }
 androidx-uiToolingPreview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "composeVersion" }
