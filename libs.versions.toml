@@ -76,7 +76,7 @@ google-utils = { group = "com.google.maps.android", name = "android-maps-utils",
 google-composeMapsUtils = { group = "com.google.maps.android", name = "maps-compose-utils", version.ref = "composeMapsVersion" }
 google-composeMapsWidgets = { group = "com.google.maps.android", name = "maps-compose-widgets", version.ref = "composeMapsVersion" }
 google-playServiceMaps = { group = "com.google.android.gms", name = "play-services-maps", version = "18.1.0" }
-google-place = { group = "com.google.android.libraries.places", name = "places", version = "3.0.0" }
+google-place = { group = "com.google.android.libraries.places", name = "places", version = "3.2.0" }
 google-placeKtx = { group = "com.google.maps.android", name = "places-ktx", version = "0.4.0" }
 
 #Coil
