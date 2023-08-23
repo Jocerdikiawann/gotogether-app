@@ -83,7 +83,7 @@ google-placeKtx = { group = "com.google.maps.android", name = "places-ktx", vers
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version = "1.4.0" }
 
 #Coroutine
-jetbrains-kotlinxCoroutineAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.3.9" }
+jetbrains-kotlinxCoroutineAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.7.3" }
 
 #Joda
 joda-time = { group = "joda-time", name = "joda-time", version = "2.12.5" }
