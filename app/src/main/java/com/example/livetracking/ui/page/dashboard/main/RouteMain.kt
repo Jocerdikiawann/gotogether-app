@@ -1,5 +1,7 @@
 package com.example.livetracking.ui.page.dashboard.main
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
@@ -10,6 +12,7 @@ import com.example.livetracking.ui.page.dashboard.home.Dashboard
 import com.example.livetracking.ui.page.dashboard.home.routeDashboard
 import com.example.livetracking.ui.page.dashboard.main.Main.navigateTo
 import com.example.livetracking.ui.page.dashboard.saved.routeSaved
+import com.example.livetracking.ui.page.direction.Direction
 import com.example.livetracking.ui.page.search.Search
 
 object Main {
@@ -19,6 +22,7 @@ object Main {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun NavGraphBuilder.dashboardGraph(
     navHostController: NavHostController,
 ) {
@@ -36,7 +40,13 @@ fun NavGraphBuilder.dashboardGraph(
                     navOptions = navOptions {
                         launchSingleTop = true
                     })
-            })
+            },
+            onNavigateToDirection = {
+                navHostController.navigateTo("${Direction.routeName}/$it", navOptions {
+                    launchSingleTop = true
+                })
+            }
+        )
         routeSaved(onNavigateToItemDashboard = {
             navHostController.navigateTo(it, navOptions { launchSingleTop = true })
         })

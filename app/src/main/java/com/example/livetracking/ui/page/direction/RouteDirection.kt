@@ -3,7 +3,6 @@ package com.example.livetracking.ui.page.direction
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -63,9 +62,7 @@ fun NavGraphBuilder.routeDirection(
         )
     ) {
         val context = LocalContext.current
-        val focusRequester = remember {
-            FocusRequester()
-        }
+        val focusRequester = remember { FocusRequester() }
         val interactionSource = MutableInteractionSource()
         val viewModel = hiltViewModel<ViewModelDirection>()
         var textSearch by remember { mutableStateOf("") }
@@ -77,8 +74,8 @@ fun NavGraphBuilder.routeDirection(
         val destinationStateUI by viewModel.destinationStateUI.observeAsState(initial = DestinationStateUI())
         val directionStateUI by viewModel.directionStateUI.observeAsState(initial = DirectionStateUI())
         val gyroScopeStateUI by viewModel.gyroScopeStateUI.observeAsState(initial = GyroData())
-        var isShareState by remember { mutableStateOf(false) }
-        val urlSharing by viewModel.urlSharing.collectAsStateWithLifecycle(initialValue = "")
+        val isShareState by LocationService.IS_SHARING.collectAsStateWithLifecycle(initialValue = false)
+        val urlSharing by viewModel.urlSharing.collectAsStateWithLifecycle(initialValue = SharingURLState())
 
         val bounds = locationStateUI.myLoc?.let { it1 ->
             destinationStateUI.destination?.let { it2 ->
@@ -143,19 +140,11 @@ fun NavGraphBuilder.routeDirection(
         }
 
         fun onShareLocation() {
-            if (!isShareState) {
+            if (!isShareState)
                 viewModel.sendDestinationAndPolyline()
-                Intent(context, LocationService::class.java).apply {
-                    action = LocationService.ACTION_START
-                    context.startForegroundService(this)
-                }
-            } else {
-                Intent(context, LocationService::class.java).apply {
-                    action = LocationService.ACTION_STOP
-                    context.startForegroundService(this)
-                }
-            }
-            isShareState = !isShareState
+            else
+                viewModel.stopLocationService()
+
         }
 
         fun copyUrl() {
@@ -164,7 +153,7 @@ fun NavGraphBuilder.routeDirection(
             clipboardManager.setPrimaryClip(
                 ClipData.newPlainText(
                     "url_sharing_location",
-                    urlSharing
+                    urlSharing.url
                 )
             )
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) context.toast("Copied")
@@ -213,7 +202,7 @@ fun NavGraphBuilder.routeDirection(
             directionLoading = directionStateUI.loading,
             isDirection = isDirectionState,
             isShare = isShareState,
-            urlSharing = urlSharing,
+            urlSharing = urlSharing.url,
             onDirectionClick = {
                 isDirectionState = !isDirectionState
             },
@@ -222,3 +211,8 @@ fun NavGraphBuilder.routeDirection(
         )
     }
 }
+
+data class SharingURLState(
+    val url: String = "",
+    val id: String = "",
+)

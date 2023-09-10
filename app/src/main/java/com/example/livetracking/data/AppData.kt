@@ -1,7 +1,8 @@
-package com.example.livetracking.data.remote
+package com.example.livetracking.data
 
 import android.content.Context
 import androidx.room.Room
+import com.example.livetracking.data.local.Persistence
 import com.example.livetracking.data.local.room.AppDatabase
 import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
@@ -12,7 +13,6 @@ import com.example.livetracking.data.remote.impl.ShareTripDataSourceImpl
 import com.example.livetracking.data.remote.services.ClientShareTripApiServices
 import com.example.livetracking.data.remote.services.GoogleApiServices
 import com.example.livetracking.data.remote.services.RoutesApiServices
-import com.gojek.mqtt.client.config.v3.MqttV3Configuration
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -105,5 +105,8 @@ class AppData {
             AppDatabase::class.java,
             AppDatabase.DATABASE_NAME
         ).fallbackToDestructiveMigration().build()
+
+        fun initPersistence(appContext: Context): Persistence =
+            Persistence(appContext.getSharedPreferences("g0to2", Context.MODE_PRIVATE))
     }
 }

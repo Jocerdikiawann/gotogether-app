@@ -1,4 +1,4 @@
-package com.example.livetracking.repository.design
+package com.example.livetracking.repository
 
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.entity.PlaceEntity

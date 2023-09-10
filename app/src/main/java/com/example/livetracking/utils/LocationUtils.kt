@@ -34,7 +34,7 @@ import javax.inject.Inject
 interface LocationClient {
     fun getLocationUpdates(): Flow<Location>
     fun turnOnGps(resultLauncher: ActivityResultLauncher<IntentSenderRequest>)
-    class LocationException(message: String) : Exception()
+    class LocationException(message: String) : Exception(message)
 }
 
 class DefaultLocationClient(

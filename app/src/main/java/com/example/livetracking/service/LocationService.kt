@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.core.app.NotificationCompat
 import com.example.livetracking.BuildConfig
 import com.example.livetracking.R
@@ -17,15 +18,14 @@ import com.example.livetracking.data.local.room.UserDao
 import com.example.livetracking.data.remote.services.CourierService
 import com.example.livetracking.domain.model.LocationData
 import com.example.livetracking.domain.model.request.LocationRequest
-import com.example.livetracking.repository.design.AuthRepository
+import com.example.livetracking.repository.AuthRepository
+import com.example.livetracking.utils.DefaultGyroClient
 import com.example.livetracking.utils.DefaultLocationClient
-import com.example.livetracking.utils.LocationClient
 import com.gojek.courier.callback.SendMessageCallback
 import com.gojek.mqtt.client.MqttClient
 import com.gojek.mqtt.model.KeepAlive
 import com.gojek.mqtt.model.MqttConnectOptions
 import com.gojek.mqtt.model.ServerUri
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,13 +62,15 @@ class LocationService : Service() {
 
     private lateinit var notificationManager: NotificationManager
 
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val notificationID = 1
     private val notificationChannel = "location_notify"
     private val mutableOfLocation: MutableStateFlow<LocationData> = MutableStateFlow(LocationData())
+    private var gyro = mutableFloatStateOf(0f)
     private val mqttConnectionOptions: MqttConnectOptions =
         MqttConnectOptions.Builder()
-            .serverUris(listOf(ServerUri("broker.hivemq.com", 8884, "wss")))
+            .serverUris(listOf(ServerUri(BuildConfig.BROKER_IP, 8884, "wss")))
             .clientId(BuildConfig.BROKER_CLIENT_ID)
             .userName(BuildConfig.BROKER_USERNAME)
             .password(BuildConfig.BROKER_PASSWORD)
@@ -79,24 +81,23 @@ class LocationService : Service() {
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
+        val IS_SHARING: MutableStateFlow<Boolean> = MutableStateFlow(false)
     }
 
     override fun onBind(p0: Intent?): IBinder? = null
 
-    private suspend fun sendLocation() {
+    private suspend fun sendLocation(id: String) {
         try {
-            val gson = Gson()
             mutableOfLocation.onEach {
                 courierService.publish(
-                    "topic/location",
+                    "topic/location/${id}",
                     message = LocationRequest(
                         id = 1,
-                        data = gson.toJson(
-                            LocationData(
-                                lat = it.lat,
-                                lng = it.lng
-                            )
-                        )
+                        data = LocationData(
+                            lat = it.lat,
+                            lng = it.lng
+                        ),
+                        azimuth = gyro.floatValue
                     ),
                     callback = object : SendMessageCallback {
                         override fun onMessageSendFailure(error: Throwable) {
@@ -129,6 +130,11 @@ class LocationService : Service() {
         DefaultLocationClient(applicationContext, 500).getLocationUpdates().onEach {
             mutableOfLocation.emit(LocationData(it.latitude, it.longitude))
         }.launchIn(serviceScope)
+
+        DefaultGyroClient(applicationContext).sensorChanged().onEach {
+            gyro.floatValue = it.azimuth
+        }.launchIn(serviceScope)
+
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
         mqttClient.connect(mqttConnectionOptions)
@@ -136,7 +142,12 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_START -> start()
+            ACTION_START -> {
+                intent.extras?.getString("id")?.let {
+                    start(it)
+                }
+            }
+
             ACTION_STOP -> stop()
         }
         return super.onStartCommand(intent, flags, startId)
@@ -156,7 +167,7 @@ class LocationService : Service() {
         notificationManager.createNotificationChannel(channel)
     }
 
-    private fun start() {
+    private fun start(id: String) {
         try {
             val appInfo = applicationContext.applicationInfo
             val stringId = appInfo.labelRes
@@ -194,7 +205,10 @@ class LocationService : Service() {
                     pendingIntentStop
                 )
             startForeground(notificationID, builder.build())
-            serviceScope.launch { sendLocation() }
+            serviceScope.launch {
+                IS_SHARING.emit(true)
+                sendLocation(id)
+            }
         } catch (e: Exception) {
             Timber.tag(TAG).d(e)
         }
@@ -210,6 +224,9 @@ class LocationService : Service() {
         stopSelf()
         notificationManager.cancel(notificationID)
         mqttClient.disconnect()
+        serviceScope.launch {
+            IS_SHARING.emit(false)
+        }
     }
 
     override fun onDestroy() {

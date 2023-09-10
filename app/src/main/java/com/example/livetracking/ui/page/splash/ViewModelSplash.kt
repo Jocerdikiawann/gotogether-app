@@ -2,7 +2,7 @@ package com.example.livetracking.ui.page.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.livetracking.repository.design.AuthRepository
+import com.example.livetracking.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect

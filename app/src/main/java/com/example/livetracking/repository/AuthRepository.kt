@@ -1,4 +1,4 @@
-package com.example.livetracking.repository.design
+package com.example.livetracking.repository
 
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.entity.UserEntity
@@ -13,5 +13,5 @@ interface AuthRepository {
 
     suspend fun checkIsLoggedIn() : Flow<Boolean>
 
-    suspend fun getUser() : UserEntity
+    suspend fun getUser() : Flow<UserEntity>
 }

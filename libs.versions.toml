@@ -94,8 +94,8 @@ junit = { group = "junit", name = "junit", version = "4.13.2" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidPluginVersion" }
 android-library = { id = "com.android.library", version.ref = "androidPluginVersion" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version = "1.9.10" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "1.9.10" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "1.9.0" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "1.9.0" }
 google-daggerHiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "daggerHiltVersion" }
 google-mapsplatform = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version = "2.0.1" }
 kotlin-parcelize = { id = "kotlin-parcelize" }

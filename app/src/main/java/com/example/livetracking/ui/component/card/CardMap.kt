@@ -21,9 +21,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 
+@OptIn(MapsComposeExperimentalApi::class)
 @Composable
 fun CardMap(
     modifier: Modifier = Modifier,
@@ -54,7 +56,7 @@ fun CardMap(
                 state = MarkerState(latLng),
                 title = "Your Location Here",
                 snippet = "marker in your location",
-                rotation = rotationMarker
+                rotation = rotationMarker,
             )
         }
     }

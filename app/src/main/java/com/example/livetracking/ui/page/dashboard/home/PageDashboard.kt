@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.livetracking.ui.component.card.CardIconMarker
+import com.example.livetracking.ui.component.card.CardIconRefresh
 import com.example.livetracking.ui.component.card.CardMap
 import com.example.livetracking.ui.component.card.CardNotPermission
 import com.example.livetracking.ui.component.card.CardRowSavedLocation
@@ -74,6 +75,7 @@ fun PageDashboard(
     addressStateUI: AddressStateUI,
     onGivePermission: () -> Unit,
     onClickSearchField: () -> Unit,
+    refresh:()->Unit,
     focusRequester: FocusRequester,
     interactionSource: MutableInteractionSource,
     ctx: Context,
@@ -148,45 +150,54 @@ fun PageDashboard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp.from(ctx)),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        CardIconMarker(
-                            ctx = ctx,
-                            modifier = Modifier
+                        Row (verticalAlignment = Alignment.CenterVertically,){
+                            CardIconMarker(
+                                ctx = ctx,
+                                modifier = Modifier
+                                    .width(30.dp.from(ctx))
+                                    .height(30.dp.from(ctx))
+                            )
+                            Spacer(modifier = Modifier.width(10.dp.from(ctx)))
+                            Text(modifier = Modifier.placeholder(
+                                visible = addressStateUI.loading,
+                                highlight = PlaceholderHighlight.fade(),
+                                shape = RoundedCornerShape(8.dp.from(ctx)),
+                                color = Color.Gray,
+                            ),
+                                text = buildAnnotatedString {
+                                    withStyle(
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 12.sp.from(ctx),
+                                            color = Color.Black,
+                                        ).toSpanStyle()
+                                    ) {
+                                        append(
+                                            "${
+                                                addressStateUI.addressFirst.toTitleCase()
+                                            },"
+                                        )
+                                    }
+                                    withStyle(
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 12.sp.from(ctx),
+                                            color = Color.Gray,
+                                        ).toSpanStyle()
+                                    ) {
+                                        append(addressStateUI.addressSecond.toTitleCase())
+                                    }
+                                })
+                        }
+                        CardIconRefresh(
+                            ctx = ctx, modifier = Modifier
                                 .width(30.dp.from(ctx))
-                                .height(30.dp.from(ctx))
+                                .height(30.dp.from(ctx)),
+                            refresh=refresh
                         )
-                        Spacer(modifier = Modifier.width(10.dp.from(ctx)))
-                        Text(modifier = Modifier.placeholder(
-                            visible = addressStateUI.loading,
-                            highlight = PlaceholderHighlight.fade(),
-                            shape = RoundedCornerShape(8.dp.from(ctx)),
-                            color = Color.Gray,
-                        ),
-                            text = buildAnnotatedString {
-                                withStyle(
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 12.sp.from(ctx),
-                                        color = Color.Black,
-                                    ).toSpanStyle()
-                                ) {
-                                    append(
-                                        "${
-                                            addressStateUI.addressFirst.toTitleCase()
-                                        },"
-                                    )
-                                }
-                                withStyle(
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 12.sp.from(ctx),
-                                        color = Color.Gray,
-                                    ).toSpanStyle()
-                                ) {
-                                    append(addressStateUI.addressSecond.toTitleCase())
-                                }
-                            })
                     }
                 }
                 item {
@@ -230,6 +241,7 @@ fun PageDashboard(
                 }
             })
         }
+
         false -> {
             CardNotPermission(ctx = ctx) {
                 onGivePermission()

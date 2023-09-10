@@ -10,23 +10,23 @@ import com.example.livetracking.domain.entity.UserEntity
 @Dao
 interface UserDao {
     @Query("SELECT * FROM tb_user WHERE id = 1")
-    suspend fun getUser(): UserEntity?
+     fun getUser(): UserEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(userEntity: UserEntity)
+     fun insert(userEntity: UserEntity)
 
     @Query("DELETE FROM tb_user WHERE id = 1")
-    suspend fun delete()
+     fun delete()
 }
 
 @Dao
 interface TokenDao {
     @Query("SELECT * FROM tb_token WHERE id = 1")
-    suspend fun getToken(): TokenEntity?
+     fun getToken(): TokenEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(token: TokenEntity)
+     fun insert(token: TokenEntity)
 
     @Query("DELETE FROM tb_token WHERE id = 1")
-    suspend fun delete()
+     fun delete()
 }

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.entity.PlaceEntity
 import com.example.livetracking.domain.model.LocationData
-import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.repository.GoogleRepository
 import com.example.livetracking.utils.DefaultLocationClient
 import com.example.livetracking.utils.getTodayTimeStamp
 import com.example.livetracking.utils.toLatLng

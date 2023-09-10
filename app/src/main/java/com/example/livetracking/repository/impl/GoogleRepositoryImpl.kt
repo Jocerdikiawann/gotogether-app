@@ -20,7 +20,7 @@ import com.example.livetracking.domain.model.response.RoutesResponse
 import com.example.livetracking.domain.utils.RouteTravelModes
 import com.example.livetracking.domain.utils.RoutingPreference
 import com.example.livetracking.domain.utils.TravelModes
-import com.example.livetracking.repository.design.GoogleRepository
+import com.example.livetracking.repository.GoogleRepository
 import com.example.livetracking.utils.CalculationBoundsUtils
 import com.example.livetracking.utils.formatDate
 import com.example.livetracking.utils.getTodayTimeStamp
@@ -30,18 +30,16 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.RectangularBounds
-import com.google.android.libraries.places.api.net.FetchPhotoRequest
-import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.ktx.api.net.awaitFetchPhoto
 import com.google.android.libraries.places.ktx.api.net.awaitFetchPlace
 import com.google.android.libraries.places.ktx.api.net.awaitFindAutocompletePredictions
-import com.google.android.libraries.places.ktx.api.net.findAutocompletePredictionsRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import retrofit2.HttpException
+import timber.log.Timber
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -63,6 +61,7 @@ class GoogleRepositoryImpl(
                 is DataState.onData -> {
                     emit(DataState.onData(result.data))
                 }
+
                 is DataState.onFailure -> emit(DataState.onFailure(result.error_message))
                 DataState.onLoading -> emit(DataState.onLoading)
             }
@@ -115,16 +114,18 @@ class GoogleRepositoryImpl(
                 is DataState.onData -> {
                     emit(DataState.onData(result.data))
                 }
+
                 is DataState.onFailure -> {
                     emit(DataState.onFailure(result.error_message))
                 }
+
                 DataState.onLoading -> emit(DataState.onLoading)
             }
         } catch (e: HttpException) {
-            Log.e("ceke", e.toString())
+            Timber.tag("ceke").e(e.toString())
             emit(DataState.onFailure(e.message ?: "Internal error"))
         } catch (e: IOException) {
-            Log.e("ceke", e.toString())
+            Timber.tag("ceke").e(e.toString())
             emit(DataState.onFailure(e.message ?: "No internet connection"))
         }
     }.flowOn(dispatcherProvider.default())
@@ -137,9 +138,11 @@ class GoogleRepositoryImpl(
                     is DataState.onData -> {
                         emit(DataState.onData(result.data))
                     }
+
                     is DataState.onFailure -> {
                         emit(DataState.onFailure(result.error_message))
                     }
+
                     DataState.onLoading -> emit(DataState.onLoading)
                 }
             } catch (e: HttpException) {
@@ -160,17 +163,16 @@ class GoogleRepositoryImpl(
                 CalculationBoundsUtils(myLoc.lat, myLoc.lng, -15000, -15000),
                 CalculationBoundsUtils(myLoc.lat, myLoc.lng, 15000, 15000)
             )
-            val request = findAutocompletePredictionsRequest {
-                locationBias = bounds
-                typesFilter = listOf()
-                sessionToken = token
-                origin = LatLng(myLoc.lat, myLoc.lng)
-                query = queries
-            }
 
             try {
                 val response =
-                    placesClient.awaitFindAutocompletePredictions(request)
+                    placesClient.awaitFindAutocompletePredictions(actions = {
+                        locationBias = bounds
+                        typesFilter = listOf()
+                        sessionToken = token
+                        origin = LatLng(myLoc.lat, myLoc.lng)
+                        query = queries
+                    })
 
                 emit(DataState.onData(response.autocompletePredictions))
             } catch (e: Exception) {
@@ -183,23 +185,19 @@ class GoogleRepositoryImpl(
     override suspend fun getDetailPlace(placeId: String): Flow<DataState<PlaceData>> =
         flow<DataState<PlaceData>> {
             emit(DataState.onLoading)
-            val placeRequest =
-                FetchPlaceRequest.newInstance(
-                    placeId,
-                    listOf(
+            try {
+                val response = placesClient.awaitFetchPlace(
+                    placeId = placeId, placeFields = listOf(
                         Place.Field.ID, Place.Field.NAME,
                         Place.Field.LAT_LNG, Place.Field.ADDRESS,
                         Place.Field.ICON_URL, Place.Field.PHOTO_METADATAS
-                    ),
+                    )
                 )
-            try {
-                val response = placesClient.awaitFetchPlace(request = placeRequest)
                 response.place.photoMetadatas?.first()?.let {
-                    val photoRequest = FetchPhotoRequest.builder(it)
-                        .setMaxWidth(500)
-                        .setMaxHeight(300)
-                        .build()
-                    val imageResponse = placesClient.awaitFetchPhoto(photoRequest)
+                    val imageResponse = placesClient.awaitFetchPhoto(photoMetadata = it, actions = {
+                        maxHeight = 300
+                        maxWidth = 500
+                    })
                     emit(DataState.onData(PlaceData(response.place, imageResponse.bitmap)))
                 } ?: kotlin.run {
                     emit(DataState.onData(PlaceData(response.place, null)))

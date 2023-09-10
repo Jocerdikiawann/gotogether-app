@@ -1,6 +1,7 @@
 package com.example.livetracking.repository.impl
 
 import com.example.livetracking.data.coroutines.DispatcherProvider
+import com.example.livetracking.data.local.Persistence
 import com.example.livetracking.data.local.room.TokenDao
 import com.example.livetracking.data.local.room.UserDao
 import com.example.livetracking.data.remote.design.ShareTripDataSource
@@ -8,7 +9,7 @@ import com.example.livetracking.data.utils.DataState
 import com.example.livetracking.domain.entity.TokenEntity
 import com.example.livetracking.domain.entity.UserEntity
 import com.example.livetracking.domain.model.request.AuthRequest
-import com.example.livetracking.repository.design.AuthRepository
+import com.example.livetracking.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -17,7 +18,7 @@ import java.net.ConnectException
 class AuthRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider,
     private val userDao: UserDao,
-    private val tokenDao: TokenDao,
+    private val persistence: Persistence,
     private val shareTripDataSource: ShareTripDataSource,
 ) : AuthRepository {
     override suspend fun signInWithGoogle(
@@ -36,11 +37,7 @@ class AuthRepositoryImpl(
                 is DataState.onData -> {
                     if (result.data.success == true) {
                         val data = result.data.data
-                        tokenDao.insert(
-                            TokenEntity(
-                                token = result.data.token.orEmpty()
-                            )
-                        )
+                        persistence.setToken(result.data.token.orEmpty())
                         userDao.insert(
                             UserEntity(
                                 googleId = data?.googleId.orEmpty(),
@@ -69,9 +66,9 @@ class AuthRepositoryImpl(
         } else {
             emit(true)
         }
-    }.flowOn(dispatcherProvider.main())
+    }.flowOn(dispatcherProvider.io())
 
-    override suspend fun getUser(): UserEntity {
-        return userDao.getUser() ?: UserEntity(googleId = "", email = "", fullName = "")
-    }
+    override suspend fun getUser(): Flow<UserEntity> = flow {
+        emit(userDao.getUser() ?: UserEntity(googleId = "", email = "empty", fullName = "empty"))
+    }.flowOn(dispatcherProvider.io())
 }

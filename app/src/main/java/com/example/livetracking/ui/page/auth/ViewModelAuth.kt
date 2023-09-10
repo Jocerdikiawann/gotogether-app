@@ -3,7 +3,7 @@ package com.example.livetracking.ui.page.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.livetracking.data.utils.DataState
-import com.example.livetracking.repository.design.AuthRepository
+import com.example.livetracking.repository.AuthRepository
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.lifecycle.HiltViewModel

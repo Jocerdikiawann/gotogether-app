@@ -1,6 +1,9 @@
 package com.example.livetracking.domain.model.request
 
+import com.example.livetracking.domain.model.LocationData
+
 data class LocationRequest(
     val id:Int,
-    val data:String
+    val data: LocationData,
+    val azimuth: Float,
 )

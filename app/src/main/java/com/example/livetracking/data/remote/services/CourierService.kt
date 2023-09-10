@@ -9,7 +9,7 @@ import com.gojek.courier.annotation.Send
 import com.gojek.courier.callback.SendMessageCallback
 
 interface CourierService {
-    @Send(topic = "{topic}", qos = QoS.TWO)
+    @Send(topic = "{topic}", qos = QoS.ONE)
     fun publish(
         @Path("topic") topic: String,
         @Data message: LocationRequest,

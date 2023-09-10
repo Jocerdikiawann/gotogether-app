@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
 import android.view.animation.LinearInterpolator
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,13 +46,13 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.model.RoundCap
-import com.google.maps.android.PolyUtil
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.ui.AnimationUtil
+import timber.log.Timber
 
 data class DestinationStateUI(
     val loading: Boolean = false,
@@ -79,7 +81,6 @@ data class LocationStateUI(
 )
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
     MapsComposeExperimentalApi::class
 )
 @Composable
@@ -101,11 +102,11 @@ fun PageDirection(
     destinationLoading: Boolean,
     directionLoading: Boolean,
     isDirection: Boolean,
-    isShare:Boolean,
-    urlSharing:String,
+    isShare: Boolean,
+    urlSharing: String,
     onDirectionClick: () -> Unit,
     onShareLocation: () -> Unit,
-    copyUrl:()->Unit,
+    copyUrl: () -> Unit,
     cameraPositionState: CameraPositionState,
     googleMapOptions: () -> GoogleMapOptions,
     mapsUiSettings: MapUiSettings,
@@ -116,6 +117,11 @@ fun PageDirection(
 ) {
     var marker by remember { mutableStateOf<Marker?>(value = null) }
     var primaryPolyLine by remember { mutableStateOf<Polyline?>(null) }
+
+    BackHandler {
+        marker = null
+        onBackStack()
+    }
 
     BottomSheetScaffold(
         sheetContent = {
@@ -151,10 +157,8 @@ fun PageDirection(
                     .fillMaxSize()
                     .align(Alignment.Center),
                 cameraPositionState = cameraPositionState,
-                googleMapOptionsFactory = {
-                    googleMapOptions()
-                },
-                onMapLoaded = { onMapLoaded() },
+                googleMapOptionsFactory = googleMapOptions,
+                onMapLoaded = onMapLoaded,
                 uiSettings = mapsUiSettings,
                 onMyLocationClick = {
                     onMyLocationButtonClick(it)
@@ -174,7 +178,6 @@ fun PageDirection(
                             MarkerOptions().position(destination).title("Your Destination")
                         )
                     }
-
                     val grayPolyline = map.addPolyline(
                         PolylineOptions()
                             .color(android.graphics.Color.TRANSPARENT)
@@ -252,7 +255,10 @@ fun PageDirection(
                     focusRequester = focusRequester,
                     interactionSource = interactionSource,
                     leadingIcon = {
-                        IconButton(onClick = { onBackStack() }) {
+                        IconButton(onClick = {
+                            marker?.remove()
+                            onBackStack()
+                        }) {
                             Icon(
                                 Icons.Sharp.ArrowBack,
                                 contentDescription = "ic_left_arrow",

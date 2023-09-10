@@ -2,20 +2,21 @@ package com.example.livetracking.di
 
 import android.content.Context
 import com.example.livetracking.BuildConfig
+import com.example.livetracking.data.AppData
 import com.example.livetracking.data.coroutines.DefaultDispatcherProvider
 import com.example.livetracking.data.coroutines.DispatcherProvider
+import com.example.livetracking.data.local.Persistence
 import com.example.livetracking.data.local.room.AppDatabase
 import com.example.livetracking.data.local.room.PlaceDao
 import com.example.livetracking.data.local.room.TokenDao
 import com.example.livetracking.data.local.room.UserDao
-import com.example.livetracking.data.remote.AppData
 import com.example.livetracking.data.remote.design.GoogleDataSource
 import com.example.livetracking.data.remote.design.RoutesDataSource
 import com.example.livetracking.data.remote.design.ShareTripDataSource
 import com.example.livetracking.data.remote.services.CourierService
-import com.example.livetracking.repository.design.AuthRepository
-import com.example.livetracking.repository.design.GoogleRepository
-import com.example.livetracking.repository.design.RouteRepository
+import com.example.livetracking.repository.AuthRepository
+import com.example.livetracking.repository.GoogleRepository
+import com.example.livetracking.repository.RouteRepository
 import com.example.livetracking.repository.impl.AuthRepositoryImpl
 import com.example.livetracking.repository.impl.GoogleRepositoryImpl
 import com.example.livetracking.repository.impl.RouteRepositoryImpl
@@ -50,6 +51,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
+
+    @Provides
+    fun providePersistence(
+        @ApplicationContext context: Context,
+    ): Persistence = AppData.initPersistence(appContext = context)
 
     @Provides
     fun provideCourierService(
@@ -101,7 +107,12 @@ object DataModule {
         return MqttV3Configuration(
             logger = logger,
             authenticator = authenticator,
-            mqttInterceptorList = listOf(MqttChuckInterceptor(context, MqttChuckConfig(retentionPeriod = Period.ONE_HOUR))),
+            mqttInterceptorList = listOf(
+                MqttChuckInterceptor(
+                    context,
+                    MqttChuckConfig(retentionPeriod = Period.ONE_HOUR)
+                )
+            ),
             persistenceOptions = PersistenceOptions.PahoPersistenceOptions(100, false),
             pingSender = WorkPingSenderFactory.createMqttPingSender(
                 context,
@@ -244,11 +255,11 @@ object DataModule {
     internal fun provideAuthRepository(
         dispatcherProvider: DispatcherProvider,
         userDao: UserDao,
-        tokenDao: TokenDao,
+        persistence: Persistence,
         shareTripDataSource: ShareTripDataSource
     ): AuthRepository {
         return AuthRepositoryImpl(
-            dispatcherProvider, userDao, tokenDao, shareTripDataSource
+            dispatcherProvider, userDao, persistence, shareTripDataSource
         )
     }
 
@@ -256,10 +267,10 @@ object DataModule {
     internal fun provideRouteRepository(
         dispatcherProvider: DispatcherProvider,
         shareTripDataSource: ShareTripDataSource,
-        tokenDao: TokenDao
+        persistence: Persistence,
     ): RouteRepository = RouteRepositoryImpl(
         dispatcherProvider = dispatcherProvider,
-        tokenDao = tokenDao,
+        persistence = persistence,
         shareTripDataSource = shareTripDataSource
     )
 }
