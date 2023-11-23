@@ -75,7 +75,7 @@ google-utilsKtx = { group = "com.google.maps.android", name = "maps-utils-ktx", 
 google-utils = { group = "com.google.maps.android", name = "android-maps-utils", version = "3.8.0" }
 google-composeMapsUtils = { group = "com.google.maps.android", name = "maps-compose-utils", version.ref = "composeMapsVersion" }
 google-composeMapsWidgets = { group = "com.google.maps.android", name = "maps-compose-widgets", version.ref = "composeMapsVersion" }
-google-playServiceMaps = { group = "com.google.android.gms", name = "play-services-maps", version = "18.1.0" }
+google-playServiceMaps = { group = "com.google.android.gms", name = "play-services-maps", version = "18.2.0" }
 google-place = { group = "com.google.android.libraries.places", name = "places", version = "3.2.0" }
 google-placeKtx = { group = "com.google.maps.android", name = "places-ktx", version = "2.0.0" }
 
