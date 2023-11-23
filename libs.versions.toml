@@ -1,5 +1,5 @@
 [versions]
-composeVersion = "1.5.3"
+composeVersion = "1.5.4"
 roomVersion = "2.5.2"
 lifeCycleVersion = "2.6.2"
 courierVersion = "0.2.8"
