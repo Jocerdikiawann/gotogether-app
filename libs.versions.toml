@@ -1,6 +1,6 @@
 [versions]
 composeVersion = "1.5.4"
-roomVersion = "2.5.2"
+roomVersion = "2.6.1"
 lifeCycleVersion = "2.6.2"
 courierVersion = "0.2.8"
 timberVersion = "5.0.1"
