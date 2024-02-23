@@ -80,7 +80,7 @@ google-place = { group = "com.google.android.libraries.places", name = "places",
 google-placeKtx = { group = "com.google.maps.android", name = "places-ktx", version = "2.0.0" }
 
 #Coil
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version = "2.4.0" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version = "2.6.0" }
 
 #Coroutine
 jetbrains-kotlinxCoroutineAndroid = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version = "1.7.3" }
