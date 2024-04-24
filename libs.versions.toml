@@ -56,7 +56,7 @@ androidx-appcompatResource = { group = "androidx.appcompat", name = "appcompat-r
 
 #Retrofit
 squareup-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofitVersion" }
-squareup-okhttp3Bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version = "4.11.0" }
+squareup-okhttp3Bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version = "4.12.0" }
 squareup-okhttp = { group = "com.squareup.okhttp3", name = "okhttp" }
 squareup-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
 squareup-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofitVersion" }
