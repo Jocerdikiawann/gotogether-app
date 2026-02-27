@@ -43,7 +43,7 @@ androidx-hiltNavigationCompose = { group = "androidx.hilt", name = "hilt-navigat
 #Test
 androidx-junit = { group = "androidx.test.ext", name = "junit", version = "1.1.5" }
 androidx-uiTestJunit = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "composeVersion" }
-androidx-espressoCore = { group = "androidx.test.espresso", name = "espresso-core", version = "3.5.1" }
+androidx-espressoCore = { group = "androidx.test.espresso", name = "espresso-core", version = "3.7.0" }
 
 #Room
 androidx-roomRuntime = { group = "androidx.room", name = "room-runtime", version.ref = "roomVersion" }
