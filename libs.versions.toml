@@ -9,7 +9,7 @@ retrofitVersion = "2.9.0"
 daggerHiltVersion = "2.59.2"
 accompanistVersion = "0.34.0"
 mapsUtilVersion = "3.4.0"
-composeMapsVersion = "4.4.0"
+composeMapsVersion = "4.4.2"
 androidPluginVersion = "8.13.2"
 appCompatVersion = "1.6.1"
 
