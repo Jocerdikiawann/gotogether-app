@@ -67,7 +67,7 @@ google-hiltAndroid = { group = "com.google.dagger", name = "hilt-android", versi
 google-hiltCompoiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "daggerHiltVersion" }
 google-systemUiController = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanistVersion" }
 google-placeHolderMaterial = { group = "com.google.accompanist", name = "accompanist-placeholder-material", version.ref = "accompanistVersion" }
-google-playServiceLocation = { group = "com.google.android.gms", name = "play-services-location", version = "21.0.1" }
+google-playServiceLocation = { group = "com.google.android.gms", name = "play-services-location", version = "21.3.0" }
 google-playServiceAuth = { group = "com.google.android.gms", name = "play-services-auth", version = "20.7.0" }
 google-mapsCompose = { group = "com.google.maps.android", name = "maps-compose", version = "2.15.0" }
 google-mapsKtx = { group = "com.google.maps.android", name = "maps-ktx", version.ref = "mapsUtilVersion" }
