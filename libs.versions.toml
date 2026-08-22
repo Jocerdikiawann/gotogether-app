@@ -2,7 +2,7 @@
 composeVersion = "1.10.4"
 roomVersion = "2.6.1"
 lifeCycleVersion = "2.6.2"
-courierVersion = "0.2.9"
+courierVersion = "0.3.7"
 timberVersion = "5.0.1"
 coreKtxVersion = "1.17.0"
 retrofitVersion = "2.9.0"
